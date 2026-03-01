@@ -72,9 +72,10 @@ Lex è un **"collante linguistico"** che permette di definire contenuti di gioco
 - Lore context per AI companion
 
 ### 4. Leggibilità Umana
-- Sintassi simile all'italiano/naturale
+- Keyword in inglese per compatibilità internazionale
+- Commenti e descrizioni in italiano per accessibilità locale
 - Contesto implicito (non serve ripetere informazioni)
-- Esempi autoesplicativi
+- Esempi autoesplicativii
 
 ### 5. Errori che Spiegano, Non Accusino
 - Ogni errore dice cosa correggere

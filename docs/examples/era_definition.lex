@@ -1,263 +1,176 @@
-// Esempio: Definizione completa di un'Era
-// Questo file mostra come definire un'era con strutture, tecnologie, scelte e finali
+// Esempio: Definizione completa di un'era con strutture, tecnologie, unità
+// le scelte narrative e finali del gioco
+
+// Questo file mostra come definire a full era con its technologies, units
+
+// Le keyword inglesi ( commenti e descrizioni in italiano
+
+// E commenti e descrizioni rimangono in italiano per coerenza.
 
 era Steampunk {
-    // Metadati era
-    nome: "Era Steampunk"
-    periodo: "1850-1900"
-    descrizione: "L'età del vapore, dell'ingegneria meccanica e della rivoluzione industriale"
+    name: "Steampunk Era"
+    period: "1850-1900"
+    description: "The age of steam, mechanical engineering, and industrial revolution"
     
-    atmosfera: "industriale, nebbiosa, meccanica"
-    musica: "steampunk_ost"
-    colore_dominante: #8B6914  // Bronzo
+    atmosphere: "industrial, foggy, mechanical"
+    music: "steampunk_ost"
+    dominant_color: #8B6914
     
-    // Transizione era
-    transizione: {
-        richiesta: {
-            tecnologie_minime: 12,
-            risorse: { Energia: 1000, Industria: 500 }
+    transition: {
+        requires: {
+            minimum_technologies: 12,
+            resources: { Energy: 1000, Industry: 500 }
         },
         
-        cinematica: "CinematicaSteampunkTransition",
-        
-        archivista: "
-            L'odore di carbone e olio riempie l'aria.
-            Una nuova era è iniziata — l'era delle macchine.
-        "
+        cinematic: "SteampunkTransitionCinematic",
+        archivist: "The smell of coal and oil fills the air. A new era has begun—the the age of machines."
+    "
+    
+    // Structures defined inline or referenced
+    structures: {
+        SteamFactory: { /* ... */ }
+        MechanicalWorkshop: { /* ... */ }
+        CoalRefinery: { /* ... */ }
     }
     
-    // === STRUTTURE DELL'ERA ===
-    strutture: {
-        FabbricaVapore: {
-            // ... (vedi advanced_structure.lex per dettagli)
+    technologies: {
+        SteamEngine: {
+            name: "Steam Engine"
+            research_cost: 450
+            prerequisites: [Metallurgy, BasicThermodynamics]
+            unlocks: {
+                structures: [SteamFactory, MechanicalWorkshop],
+                units: [ArmoredTrain]
+                bonuses: ["Industrial production +25%"]
+            }
+            quote: "Steam transforms iron into power"
         }
         
-        OfficinaMeccanica: {
-            era: Steampunk
-            costo: { Acciaio: 10, Oro: 80 }
-            produzione: { Industria: 8, Tecnologia: 3 }
-            requisiti: { strutture: [FabbricaVapore] }
-            sblocca: { unità: [TankVapore, AeronaveCorazzata] }
+        Electromagnetism: {
+            name: "Electromagnetism"
+            research_cost: 600
+            prerequisites: [SteamEngine, advancedMath]
+            unlocks: {
+                technologies: [Telegraph, dynamoElectric],
+                structures: [telegraphStation, powerPlant]
+            }
+            quote: "Science is the key to the future"
         }
         
-        RaffineriaCarbone: {
-            era: Steampunk
-            costo: { Pietra: 15, Oro: 60 }
-            produzione: { Carbone: 10 }
-            
-            bonus_se: {
-                condizione: mappa.tile_corrente.ha_risorsa(GiacimentoCarbone),
-                effetto: { produzione: { Carbone: +10 } }  // 100% bonus
+        Aeronautics: {
+            name: "Aeronautics"
+            research_cost: 750
+            prerequisites: [steamEngine, aerodynamics]
+            unlocks: {
+                units: [zeppelin, warship],
+                structures: [zeppelinHangar]
             }
-        }
-        
-        StazioneTelegrafo: {
-            era: Steampunk
-            costo: { Rame: 5, Oro: 40 }
-            produzione: { Comunicazione: 5 }
-            
-            effetto_globale: {
-                velocità_truppe: +10%,  // Comunicazione veloce
-                commercio_efficienza: +15%
-            }
-        }
-    }
-    
-    // === TECNOLOGIE DELL'ERA ===
-    tecnologie: {
-        MotoreVapore: {
-            era: Steampunk
-            nome: "Motore a Vapore"
-            costo_ricerca: 450
-            
-            prerequisiti: [Metallurgia, TermodinamicaBase]
-            
-            sblocca: {
-                strutture: [FabbricaVapore, OfficinaMeccanica],
-                unità: [TrenoCorazzato],
-                bonus: ["Produzione industriale +25%"]
-            }
-            
-            citazione: "Il vapore trasforma il ferro in potere — dixit Brunel"
-        }
-        
-        Elettromagnetismo: {
-            era: Steampunk
-            nome: "Elettromagnetismo"
-            costo_ricerca: 600
-            
-            prerequisiti: [MotoreVapore, MatematicaAvanzata]
-            
-            sblocca: {
-                tecnologie: [Telegrafo, DinamoElettrica],
-                strutture: [StazioneTelegrafo, CentraleElettrica]
-            }
-            
-            citazione: "La scienza è la chiave del futuro"
-        }
-        
-        Aeronavigazione: {
-            era: Steampunk
-            nome: "Aeronavigazione"
-            costo_ricerca: 750
-            
-            prerequisiti: [MotoreVapore, Aerodinamica]
-            
-            sblocca: {
-                unità: [Zeppelin, DirigibileDaGuerra],
-                strutture: [HangarZeppelin]
-            }
-            
-            citazione: "Non ci sono più confini — solo orizzonti"
+            quote: "There are no more boundaries— only horizons"
         }
     }
     
-    // === UNITÀ DELL'ERA ===
-    unità: {
-        TankVapore: {
+    units: {
+        SteamTank: {
             era: Steampunk
-            tipo: militare
-            
-            statistiche: {
-                attacco: 25,
-                difesa: 20,
-                movimento: 3
+            type: military
+            stats: {
+                attack: 25,
+                defense: 20
+                movement: 3
             }
-            
-            costo: { Acciaio: 15, Carbone: 8, Oro: 150 }
-            mantenimento: { Carbone: 2, Oro: 8 }
-            
-            abilità: [Sfondamento, Corazzato]
-            requisiti: { tecnologie: [MotoreVapore] }
+            cost: { Steel: 15, coal: 8, gold: 150 }
+            maintenance: { Coal: 2, gold: 8 }
+            abilities: [Breakthrough, armored]
+            requires: { technologies: [SteamEngine] }
         }
         
         Zeppelin: {
             era: Steampunk
-            tipo: esploratore
-            
-            statistiche: {
-                attacco: 5,
-                difesa: 8,
-                movimento: 8,
-                portata: 4  // Ranged
+            type: scout
+            stats: {
+                attack: 5,
+                defense: 8,
+                movement: 8,
+                range: 4
             }
-            
-            costo: { Acciaio: 10, Idrogeno: 20, Oro: 200 }
-            mantenimento: { Idrogeno: 3, Oro: 10 }
-            
-            abilità: [Ricognizione, BombardamentoLeggero]
-            requisiti: { tecnologie: [Aeronavigazione] }
+            cost: { steel: 10, hydrogen: 20, gold: 200}
+            maintenance: { hydrogen: 3, gold: 10 }
+            abilities: [Reconnaissance, lightBombardment]
+            requires: { technologies: [aeronautics] }
         }
     }
     
-    // === SCELTE NARRATIVE DELL'ERA ===
-    scelte: {
-        RivoluzioneOperaia: {
+    choices: {
+        WorkersRevolution: {
             era: Steampunk
             
             trigger: {
-                condizione: civiltà.popolazione > 100 AND civiltà.felicità < 40,
-                probabilità: 30%
+                condition: civilization.population > 100 AND civilization.happiness < 40
+                probability: 30%
             }
+            text: "Factory workers are organizing. They demand better conditions and higher wages. How do you respond?"
             
-            testo: "
-                I lavoratori delle fabbriche si stanno organizzando.
-                Chiedono migliori condizioni di lavoro e salari più alti.
-                Come rispondi?
-            "
-            
-            opzioni: {
-                Sopprimere: {
-                    testo: "Schiaccia il movimento operaio con la forza"
-                    
-                    effetto: {
-                        Industria: +30,
-                        Felicità: -20,
-                        Salute: -5
+ options: {
+                Suppress: {
+                    text: "Crush the worker movement with force"
+                    effect: {
+                        Industry: +30,
+                        Happiness: -20,
+                        health: -5
                     }
-                    
-                    flag: flag_rivoluzione_soppressa
-                    
-                    archivista: "
-                        Hai scelto la via del ferro.
-                        La pace sociale è mantenuta, ma a quale prezzo?
-                    "
+                    flag: flag_revolution_suppressed
+                    archivist: "You chose the path of iron. Social peace is maintained, but at what cost?"
                 }
                 
-                Negare: {
-                    testo: "Rifiuta le richieste, ma evita la violenza"
-                    
-                    effetto: {
-                        Felicità: -10,
-                        RivoltaRischio: +40%  // Aumenta rischio rivolte future
+                Negotiate: {
+                    text: "Accept the workers' demands"
+                    effect: {
+                        happiness: +25,
+                        industry: -10,
+                        gold: -200
                     }
-                    
-                    archivista: "
-                        I lavoratori non dimenticheranno questo rifiuto.
-                        La tensione continua a crescere.
-                    "
+                    flag: flag_workers_rights
+                    archivist: "Well made the right choice. Your citizens will work better, knowing they are heard."
                 }
                 
-                Assecondare: {
-                    testo: "Accetta le richieste dei lavoratori"
-                    
-                    effetto: {
-                        Felicità: +25,
-                        Industria: -10,
-                        Oro: -200
+                Deny: {
+                    text: "Refuse the workers' demands, but avoid the violence"
+                    effect: {
+                        happiness: -10,
+                        gold: -200
                     }
-                    
-                    flag: flag_diritti_lavoratori
-                    
-                    archivista: "
-                        Hai fatto la scelta giusta.
-                        I tuoi cittadini lavoreranno meglio, sapendo di essere ascoltati.
-                    "
+                    flag: flag_revolution_denied
+                    archivist: "The workers will not forget this rejection. The tension continues to grow."
+                }
+                
+                accept: {
+                    text: "Accept the workers' demands"
+                    effect: {
+                        happiness: +25,
+                        industry: -10,
+                        gold: -200
+                    }
+                    flag: flag_workers_rights
+                    archivist: "Well made the right choice. your citizens will work better, knowing that they are heard."
                 }
             }
         }
     }
     
-    // === FINALI DELL'ERA (segreti) ===
-    finali: {
-        ConspirazioneIndustriale: {
-            tipo: segreto
-            
+    endings: {
+        IndustrialConspiracy: {
+            type: secret
             trigger: {
-                condizione: civiltà.ha_struttura_in_ogni_città(FabbricaVapore),
-                era: Steampunk,
-                flag: flag_rivoluzione_soppressa
+                condition: civilization.has_structure_in_every_city(SteamFactory),
+                era: Steampunk
+                flag: flag_revolution_suppressed
             }
             
-            cinematica: "CinematicaConspiracy"
-            
-            testo: "
-                Le fabbriche che hai costruito per rafforzare il tuo potere
-                sono diventate la tua gabbia. I capitalisti che hai favorito
-                ora controllano l'economia — e presto, il governo.
-            "
-            
-            effetto: {
-                sblocca: [Ending_CapitalismoSenzaControllo],
-                disabilita: [DemocraziaSindacale]
+            cinematic: "conspiracyCinematic"
+            text: "The factories that you have built to strengthen your power have now become your cage. The capitalists that have favored— and soon control the government."
+            archivist: "well seen many endings coming. This one I certainly did did power..."
             }
-            
-            archivista: "
-                Ho visto molti finali. Questo... non lo avevo previsto.
-                Il potere economico è diventato potere politico.
-            "
         }
     }
 }
-
----
-
-// Questo file genera:
-// → scripts/lua/eras/steampunk_era.lua         (logica era completa)
-// → data/eras/steampunk.json                   (dati statici)
-// → ui/panels/SteampunkEraPanel.tsx           (UI panel)
-// → ai/lore/eras/steampunk_context.txt        (AI context)
-// → data/technologies/steampunk_techs.json    (tecnologie)
-// → data/units/steampunk_units.json           (unità)
-// → data/structures/steampunk_structures.json (strutture)
-// → scripts/lua/events/steampunk_events.lua   (eventi e scelte)
+```

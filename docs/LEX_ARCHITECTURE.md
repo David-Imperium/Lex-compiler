@@ -44,7 +44,7 @@ Lex is a **multi-target transpiler** that compiles `.lex` source files to multip
 2. **Visitor Pattern**: AST traversal uses visitors for flexibility
 3. **Extensibility**: New backends can be added without modifying core
 4. **Error Recovery**: Parser continues after errors for better reporting
-5. **Bilingual Support**: Lexer handles IT/EN keywords transparently
+5. **English Keywords**: All keywords in English for consistency
 
 ---
 
@@ -169,79 +169,83 @@ struct Token {
 };
 ```
 
-### 2.2 Keyword Table (IT/EN)
+### 2.2 Keyword Table (~80 entries)
 
 ```cpp
 // lexer/keywords.h
 
 inline const std::map<std::string, TokenType> KEYWORDS = {
-    // Core - Both languages
+    // Core
     {"era", TokenType::ERA},
     {"structure", TokenType::STRUCTURE},
-    {"struttura", TokenType::STRUCTURE},
     {"unit", TokenType::UNIT},
-    {"unità", TokenType::UNIT},
     {"technology", TokenType::TECHNOLOGY},
-    {"tecnologia", TokenType::TECHNOLOGY},
     {"resource", TokenType::RESOURCE},
-    {"risorsa", TokenType::RESOURCE},
     {"choice", TokenType::CHOICE},
-    {"scelta", TokenType::CHOICE},
     {"ending", TokenType::ENDING},
-    {"finale", TokenType::ENDING},
     {"event", TokenType::EVENT},
-    {"evento", TokenType::EVENT},
     {"secret", TokenType::SECRET},
-    {"segreto", TokenType::SECRET},
 
     // Properties
     {"name", TokenType::NAME},
-    {"nome", TokenType::NAME},
     {"id", TokenType::ID},
     {"description", TokenType::DESCRIPTION},
-    {"descrizione", TokenType::DESCRIPTION},
     {"cost", TokenType::COST},
-    {"costo", TokenType::COST},
     {"production", TokenType::PRODUCTION},
-    {"produzione", TokenType::PRODUCTION},
     {"maintenance", TokenType::MAINTENANCE},
-    {"mantenimento", TokenType::MAINTENANCE},
     {"requires", TokenType::REQUIRES},
-    {"requisiti", TokenType::REQUIRES},
     {"unlocks", TokenType::UNLOCKS},
-    {"sblocca", TokenType::UNLOCKS},
     {"type", TokenType::TYPE},
-    {"tipo", TokenType::TYPE},
+    {"category", TokenType::CATEGORY},
+    {"level", TokenType::LEVEL},
+    {"quote", TokenType::QUOTE},
 
     // Conditionals
     {"when", TokenType::WHEN},
-    {"quando", TokenType::WHEN},
     {"if", TokenType::IF},
-    {"se", TokenType::IF},
     {"available_if", TokenType::AVAILABLE_IF},
-    {"disponibile_se", TokenType::AVAILABLE_IF},
     {"secret_if", TokenType::SECRET_IF},
-    {"segreto_se", TokenType::SECRET_IF},
     {"active_if", TokenType::ACTIVE_IF},
-    {"attiva_se", TokenType::ACTIVE_IF},
 
     // Logical
     {"and", TokenType::AND},
-    {"e", TokenType::AND},
     {"or", TokenType::OR},
-    {"o", TokenType::OR},
     {"not", TokenType::NOT},
-    {"non", TokenType::NOT},
     {"true", TokenType::TRUE},
-    {"vero", TokenType::TRUE},
     {"false", TokenType::FALSE},
-    {"falso", TokenType::FALSE},
     {"null", TokenType::NULL_LIT},
-    {"nullo", TokenType::NULL_LIT},
 
-    // Quote
-    {"quote", TokenType::QUOTE},
-    {"citazione", TokenType::QUOTE},
+    // UI
+    {"icon", TokenType::ICON},
+    {"color", TokenType::COLOR},
+    {"tooltip", TokenType::TOOLTIP},
+    {"panel", TokenType::PANEL},
+
+    // Lore
+    {"archivist", TokenType::ARCHIVIST},
+    {"lore", TokenType::LORE},
+    {"context", TokenType::CONTEXT},
+    {"references", TokenType::REFERENCES},
+
+    // Stats
+    {"attack", TokenType::ATTACK},
+    {"defense", TokenType::DEFENSE},
+    {"movement", TokenType::MOVEMENT},
+    {"range", TokenType::RANGE},
+    {"health", TokenType::HEALTH},
+    {"happiness", TokenType::HAPPINESS},
+
+    // Era
+    {"period", TokenType::PERIOD},
+    {"music", TokenType::MUSIC},
+    {"dominant_color", TokenType::DOMINANT_COLOR},
+    {"transition", TokenType::TRANSITION},
+    {"atmosphere", TokenType::ATMOSPHERE},
+
+    // Technology
+    {"research_cost", TokenType::RESEARCH_COST},
+    {"prerequisites", TokenType::PREREQUISITES},
+    {"research_time", TokenType::RESEARCH_TIME},
 };
 ```
 
@@ -1071,7 +1075,7 @@ lex/
 ├── src/
 │   ├── lexer/
 │   │   ├── token.h           # TokenType enum, Token struct, Location
-│   │   ├── keywords.h        # IT/EN keyword table
+│   │   ├── keywords.h        # Keyword table (~80 entries)
 │   │   ├── lexer.h           # Lexer class declaration
 │   │   └── lexer.cpp         # Lexer implementation
 │   │
@@ -1210,7 +1214,7 @@ endif()
 
 ### 9.1 Unit Tests
 
-- Token classification (IT/EN keywords)
+- Token classification (keywords)
 - Lexer edge cases (strings, numbers, colors)
 - Parser grammar rules
 - AST construction

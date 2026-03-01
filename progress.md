@@ -12,7 +12,7 @@ Ultimo aggiornamento: 2026-03-01
 
 ---
 
-## Completato Questa Sessione
+## Completato Questa sessione
 
 ### 1. Git Repository Setup (TASK 1)
 - Git init eseguito
@@ -33,7 +33,6 @@ Ultimo aggiornamento: 2026-03-01
 ---
 
 ## Metriche
-
 ### Codice
 - File C++ creati: 12
 - Righe codice skeleton: ~500
@@ -73,3 +72,27 @@ C:/Lex/
 ---
 
 **Sessione conclusa - TASK 1, 2, 3 completati**
+
+## Lezioni Apprese in questa sessione
+
+Questa sessione abbiamo rimosso il supporto per le keyword
+ italiane, riducendo la tabella keyword da 160 a 80 entry, semplificando la documentazione, riducendo il carico cognitivo per AI agent.
+Non è più necessario gestere keyword duplicate
+ ogni file
+Non è più necessario mantenere lint rule `check_locale_consistency`.
+ Keyword italiane (`struttura`, `unità`, `tecnologia`, `scelta`, `finale`, `evento`, `risorsa`, `era`, `name`, `costo`, `produzione`, `mantenimento`, `descrizione`, `citazione`, `requisiti`, `prerequisiti`, `sblocca`, `when`, `se`, `disponibile_se`, `segreto`, `attiva_se`, `abilita`, `flag`, `mark`, `type`, `level`, `quote`, `context`, `historical_references`) sono state rimosse.
+ Ora è preferibile usare keyword inglesi per il codice Lex
+ mentre comments in documentation can remain in Italian for readability.
+ Documentation is now:
+- **`LEX_KEYWORDS.md`** - Reference completa (was `LEX_KEYWORDS_EN_IT.md`)
+- **`LEX_SPECIFICATION.md`** - Full spec reference (updated)
+- **`LEX_ARCHITECTURE.md`** - Architecture documentation (updated)
+- **`LEX_AI_INTEGRATION.md`** - AI integration guide (simplified)
+- **`LEX_VISION.md`** - Vision document (updated)
+- **`LEX_ECOSYSTEM_INTEGRATION.md`** - Ecosystem integration (updated)
+- **`README.md`** - Main documentation index (updated)
+- **`examples/*.lex`** - All examples use English keywords with Italian comments
+- Tabella keyword ridotta da 160 a 80 entries
+- File rinominato: `LEX_KEYWORDS_EN_IT.md` → `LEX_KEYWORDS.md`
+- Keyword table in `LEX_ARCHITECTURE.md` ridotta da 160 a 80 entries
+- Documentation ridotta by ~50% (rimosso tabelle bilingui, IT/EN alternative syntax)

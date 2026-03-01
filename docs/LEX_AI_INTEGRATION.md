@@ -6,15 +6,9 @@
 
 ---
 
-## ⚠️ REGOLA CRITICA
+## Overview
 
-**Gli AI Agent DEVONO generare codice Lex utilizzando ESCLUSIVAMENTE le keyword in inglese.**
-
-Le keyword italiane esistono per i modder umani che preferiscono scrivere nella loro lingua, ma gli agenti AI devono SEMPRE usare l'inglese per evitare confusione e garantire la massima compatibilità.
-
----
-
-## Keywords per AI Agents (Inglese Only)
+Lex usa keyword in **inglese** come unica lingua per il codice. Questo documento for una reference velocalizzata per gli AI agent che generano codice Lex.
 
 ### Core Constructs
 
@@ -83,37 +77,19 @@ Le keyword italiane esistono per i modder umani che preferiscono scrivere nella 
 
 ---
 
-## ❌ Keyword da NON Usare (Italiano - Solo per Umani)
+## Perché Inglese?
 
-| ❌ Italiano | ✅ Usa Invece |
-|-------------|---------------|
-| `struttura` | `structure` |
-| `unità` | `unit` |
-| `tecnologia` | `technology` |
-| `scelta` | `choice` |
-| `finale` | `ending` |
-| `evento` | `event` |
-| `risorsa` | `resource` |
-| `nome` | `name` |
-| `costo` | `cost` |
-| `produzione` | `production` |
-| `mantenimento` | `maintenance` |
-| `descrizione` | `description` |
-| `citazione` | `quote` |
-| `quando` | `when` |
-| `se` | `if` |
-| `disponibile_se` | `available_if` |
-| `segreto_se` | `secret_if` |
-| `requisiti` | `requires` |
-| `sblocca` | `unlocks` |
-| `archivista` | `archivist` |
-| `e` | `and` |
-| `o` | `or` |
-| `non` | `not` |
-| `vero` | `true` |
-| `falso` | `false` |
-| `attiva` | `activate` |
-| `disattiva` | `deactivate` |
+### 1. Training Data
+I modelli AI sono addestrati principalmente su codice inglese. Le keyword inglesi sono pattern riconosci nativamente.
+
+### 2. Consistency
+Tutti gli strumenti AI (GitHub Copilot, GPT-4, Claude, etc.) funzionano meglio con l'inglese. Meno traduzione mentale = meno errori.
+
+### 3. Universal Access
+L'inglese funziona per la community internazionale. Pi accessibile per modder di tutto il mondo.
+
+### 4. Tool Integration
+LSP, syntax highlighter, validatori: tutti lavorano meglio con keyword inglesi standardizzate.
 
 ---
 
@@ -322,73 +298,24 @@ era Steampunk {
 
 ---
 
-## ❌ Esempi Errati (Cosa NON Fare)
+## Esempi Corretti
 
-### ❌ ERRATO: Keyword Italiane
-
-```lex
-struttura Fattoria {           // ❌ WRONG: use "structure"
-    era: Antica
-    nome: "Fattoria"           // ❌ WRONG: use "name"
-    
-    costo: {                   // ❌ WRONG: use "cost"
-        Oro: 50,               // ❌ WRONG: identifiers should be English
-        Legno: 20              // ❌ WRONG: use "Wood"
-    }
-    
-    produzione: {              // ❌ WRONG: use "production"
-        Cibo: 5                // ❌ WRONG: use "Food"
-    }
-}
-```
-
-### ✅ CORRETTO: Stesso Codice
-
-```lex
-structure Farm {               // ✅ CORRECT
-    era: Ancient
-    name: "Farm"               // ✅ CORRECT
-    
-    cost: {                    // ✅ CORRECT
-        Gold: 50,              // ✅ CORRECT
-        Wood: 20               // ✅ CORRECT
-    }
-    
-    production: {              // ✅ CORRECT
-        Food: 5                // ✅ CORRECT
-    }
-}
-```
-
----
-
-## Identificatori: Inglese o Italiano?
+## Identificatori
 
 ### Regola
 
-**Gli IDENTIFIER (nomi di strutture, tecnologie, etc.) possono essere in italiano se il modder lo desidera.**
+**Tutti gli IDENTIFIER (nomi di strutture, tecnologie, risorse) DEVONO essere in inglese per coerenza.**
 
-**Le KEYWORD devono essere in inglese.**
+**Le KEYWORD sono in inglese (unico).**
 
-### Esempio Accettabile
-
-```lex
-structure Fattoria {           // ✅ OK: "Fattoria" is an identifier
-    era: Antica                // ✅ OK: can use Italian for display
-    name: "Fattoria"           // ✅ OK: this is data, not syntax
-    
-    cost: { Gold: 50 }         // ✅ OK: "cost" is keyword (English)
-}
-```
-
-Tuttavia, per progetti internazionali, si raccomanda di usare identifier inglesi:
+### Esempio
 
 ```lex
-structure Farm {               // ✅ BETTER: English identifier
-    era: Ancient
-    name: "Farm"               // ✅ Can localize in JSON later
+structure SteamFactory {        // ✅ English identifier
+    era: Steampunk
+    name: "Steam Factory"       // ✅ Display name
     
-    cost: { Gold: 50 }
+    cost: { Coal: 8, Steel: 5, Gold: 50 }
 }
 ```
 
@@ -537,12 +464,11 @@ David: "Create a farm structure for the Ancient era"
 Prima di generare codice Lex, verificare:
 
 - [ ] Tutte le keyword sono in INGLESE
-- [ ] NESSUNA keyword italiana (`struttura`, `unità`, etc.)
 - [ ] Sintassi valida secondo schema
-- [ ] Identificatori possono essere in italiano (ma inglese è preferito)
+- [ ] Identificatori in inglese per coerenza
 - [ ] Costi e produzioni sono mappe `{ Resource: Amount }`
-- [ ] Condizioni usano `and`, `or`, `not` (non `e`, `o`, `non`)
-- [ ] Booleani sono `true`/`false` (non `vero`/`falso`)
+- [ ] Condizioni usano `and`, `or`, `not`
+- [ ] Booleani sono `true`/`false`
 
 ---
 
@@ -550,8 +476,8 @@ Prima di generare codice Lex, verificare:
 
 ### Documentazione
 - `LEX_SPECIFICATION.md` - Specifiche complete
-- `LEX_KEYWORDS_EN_IT.md` - Mappatura keyword completa
-- `examples/` - Esempi in inglese
+- `LEX_KEYWORDS.md` - Reference keyword completa
+- `examples/` - Esempi
 
 ### Schemas
 - `schemas/structure.schema.json`

@@ -62,10 +62,10 @@ Lex è un linguaggio dichiarativo multi-target per il modding di giochi compless
 ### Esempio Minimo
 
 ```lex
-struttura Fattoria {
-    era: Antica
-    costo: { Oro: 50, Legno: 20 }
-    produzione: { Cibo: 5 }
+structure Farm {
+    era: Ancient
+    cost: { Gold: 50, Wood: 20 }
+    production: { Food: 5 }
 }
 ```
 

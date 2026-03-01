@@ -12,7 +12,7 @@ Lex is a **declarative, multi-target transpiler language** for game modding. It 
 
 **Key Characteristics:**
 - **Declarative**: Describe WHAT, not HOW
-- **Bilingual**: IT/EN keywords (EN mandatory for AI agents)
+- **English keywords only** (standard for AI agents, humans, and tools)
 - **Type-safe**: Strong typing with inference
 - **Reference-safe**: Cross-reference validation
 
@@ -64,53 +64,57 @@ enabled: true
 ### 1.3 Keywords
 
 **Core Constructs:**
-| Token | English | Italian |
-|-------|---------|---------|
-| `ERA` | `era` | `era` |
-| `STRUCTURE` | `structure` | `struttura` |
-| `UNIT` | `unit` | `unità` |
-| `TECHNOLOGY` | `technology` | `tecnologia` |
-| `RESOURCE` | `resource` | `risorsa` |
-| `CHOICE` | `choice` | `scelta` |
-| `ENDING` | `ending` | `finale` |
-| `EVENT` | `event` | `evento` |
-| `SECRET` | `secret` | `segreto` |
+
+| Token | English | Description |
+|-------|---------|-------------|
+| `ERA` | `era` | Defines an'era historica |
+| `STRUCTURE` | `structure` | Definesce un edificio |
+| `UNIT` | `unit` | Definesce un'unità |
+| `TECHNOLOGY` | `technology` | Definisce una tecnologia |
+| `RESOURCE` | `resource` | Definisce una risorsa |
+| `CHOICE` | `choice` | Scelta narrativa |
+| `ENDING` | `ending` | Finale del gioco |
+| `EVENT` | `event` | Evento generico |
+| `SECRET` | `secret` | Contenuto segreto |
 
 **Conditional Constructs:**
-| Token | English | Italian |
-|-------|---------|---------|
-| `WHEN` | `when` | `quando` |
-| `IF` | `if` | `se` |
-| `AVAILABLE_IF` | `available_if` | `disponibile_se` |
-| `SECRET_IF` | `secret_if` | `segreto_se` |
-| `ACTIVE_IF` | `active_if` | `attiva_se` |
-| `BONUS_IF` | `bonus_if` | `bonus_se` |
+
+| Token | English | Description |
+|-------|---------|-------------|
+| `WHEN` | `when` | Condizione temporale |
+| `IF` | `if` | Condizione generica |
+| `AVAILABLE_IF` | `available_if` | Condizione disponibilità |
+| `SECRET_IF` | `secret_if` | Condizione segreto |
+| `ACTIVE_IF` | `active_if` | Condizione attivazione |
+| `BONUS_IF` | `bonus_if` | Condizione bonus |
 
 **Logical Operators:**
-| Token | English | Italian |
-|-------|---------|---------|
-| `AND` | `and` | `e` |
-| `OR` | `or` | `o` |
-| `NOT` | `not` | `non` |
-| `TRUE` | `true` | `vero` |
-| `FALSE` | `false` | `falso` |
+
+| Token | English | Description |
+|-------|---------|-------------|
+| `AND` | `and` | AND logico |
+| `OR` | `or` | OR logico |
+| `NOT` | `not` | NOT logico |
+| `TRUE` | `true` | Booleano vero |
+| `FALSE` | `false` | Booleano falso |
 
 **Property Keywords:**
-| Token | English | Italian |
-|-------|---------|---------|
-| `NAME` | `name` | `nome` |
-| `ID` | `id` | `id` |
-| `DESCRIPTION` | `description` | `descrizione` |
-| `COST` | `cost` | `costo` |
-| `PRODUCTION` | `production` | `produzione` |
-| `MAINTENANCE` | `maintenance` | `mantenimento` |
-| `REQUIRES` | `requires` | `requisiti` |
-| `UNLOCKS` | `unlocks` | `sblocca` |
-| `TYPE` | `type` | `tipo` |
-| `CATEGORY` | `category` | `categoria` |
-| `LEVEL` | `level` | `livello` |
 
-**Full keyword table:** See `LEX_KEYWORDS_EN_IT.md`
+| Token | English | Description |
+|-------|---------|-------------|
+| `NAME` | `name` | Nome visualizzato |
+| `ID` | `id` | Identificatore unico |
+| `DESCRIPTION` | `description` | Descrizione testuale |
+| `COST` | `cost` | Costo costruzione |
+| `PRODUCTION` | `production` | Produzione per turno |
+| `MAINTENANCE` | `maintenance` | Costo mantenimento |
+| `REQUIRES` | `requires` | Prerequisiti necessari |
+| `UNLOCKS` | `unlocks` | Cosa sblocca |
+| `TYPE` | `type` | Tipo di entità |
+| `CATEGORY` | `category` | Categoria |
+| `LEVEL` | `level` | Livello/tier |
+
+**Full keyword table:** See `LEX_KEYWORDS.md`
 
 ### 1.4 Operators
 
@@ -118,7 +122,7 @@ enabled: true
 ComparisonOp    = "==" | "!=" | ">" | "<" | ">=" | "<="
 ArithmeticOp    = "+" | "-" | "*" | "/" | "%"
 AssignmentOp    = "=" | "+=" | "-="
-LogicalOp       = "and" | "or" | "not" | "e" | "o" | "non"
+LogicalOp       = "and" | "or" | "not"
 ArrowOp         = "->"
 RangeOp         = ".."
 ```
@@ -294,18 +298,18 @@ EraProperty         = PropertyAssignment
 ```
 
 #### Structure Definition
-```ebnf
-StructureDefinition = ( "structure" | "struttura" ) Identifier "{"
+```lex
+StructureDefinition = "structure" Identifier "{"
                         StructureProperty { "," StructureProperty }
                       "}"
 
 StructureProperty   = PropertyAssignment
-                    | "cost" | "costo" ":" ResourceMap
-                    | "production" | "produzione" ":" ResourceMap
-                    | "maintenance" | "mantenimento" ":" ResourceMap
-                    | "requires" | "requisiti" ":" RequirementsBlock
-                    | "unlocks" | "sblocca" ":" UnlocksBlock
-                    | "available_if" | "disponibile_se" ":" ConditionalBlock
+                    | "cost" ":" ResourceMap
+                    | "production" ":" ResourceMap
+                    | "maintenance" ":" ResourceMap
+                    | "requires" ":" RequirementsBlock
+                    | "unlocks" ":" UnlocksBlock
+                    | "available_if" ":" ConditionalBlock
                     | "events" ":" EventBlock
                     | "ui" ":" UIBlock
                     | "lore" ":" LoreBlock
@@ -313,37 +317,37 @@ StructureProperty   = PropertyAssignment
 ```
 
 #### Unit Definition
-```ebnf
-UnitDefinition      = ( "unit" | "unità" ) Identifier "{"
+```lex
+UnitDefinition      = "unit" Identifier "{"
                         UnitProperty { "," UnitProperty }
                       "}"
 
 UnitProperty        = PropertyAssignment
-                    | "type" | "tipo" ":" Identifier
+                    | "type" ":" Identifier
                     | "stats" ":" StatsBlock
-                    | "cost" | "costo" ":" ResourceMap
-                    | "maintenance" | "mantenimento" ":" ResourceMap
+                    | "cost" ":" ResourceMap
+                    | "maintenance" ":" ResourceMap
                     | "abilities" ":" ReferenceList
-                    | "requires" | "requisiti" ":" RequirementsBlock
+                    | "requires" ":" RequirementsBlock
 ```
 
 #### Technology Definition
-```ebnf
-TechnologyDefinition = ( "technology" | "tecnologia" ) Identifier "{"
+```lex
+TechnologyDefinition = "technology" Identifier "{"
                          TechnologyProperty { "," TechnologyProperty }
                        "}"
 
 TechnologyProperty  = PropertyAssignment
-                    | "research_cost" | "costo_ricerca" ":" ( Integer | Float )
-                    | "research_time" | "tempo_ricerca" ":" Integer
-                    | "prerequisites" | "prerequisiti" ":" ReferenceList
-                    | "unlocks" | "sblocca" ":" UnlocksBlock
-                    | "quote" | "citazione" ":" StringLiteral
+                    | "research_cost" ":" ( Integer | Float )
+                    | "research_time" ":" Integer
+                    | "prerequisites" ":" ReferenceList
+                    | "unlocks" ":" UnlocksBlock
+                    | "quote" ":" StringLiteral
 ```
 
 #### Choice Definition (Narrative)
-```ebnf
-ChoiceDefinition    = ( "choice" | "scelta" ) Identifier "{"
+```lex
+ChoiceDefinition    = "choice" Identifier "{"
                         ChoiceProperty { "," ChoiceProperty }
                       "}"
 
@@ -393,32 +397,32 @@ BlockProperty       = PropertyAssignment
 ```
 
 #### Requirements Block
-```ebnf
+```lex
 RequirementsBlock   = "{" 
-                        [ "technologies" | "tecnologie" ":" ReferenceList ] ","
-                        [ "structures" | "strutture" ":" ReferenceList ] ","
-                        [ "resources" | "risorse" ":" ResourceMap ] ","
+                        [ "technologies" ":" ReferenceList ] ","
+                        [ "structures" ":" ReferenceList ] ","
+                        [ "resources" ":" ResourceMap ] ","
                         [ "era" ":" Identifier ]
                       "}"
 ```
 
 #### Unlocks Block
-```ebnf
+```lex
 UnlocksBlock        = "{"
-                        [ "technologies" | "tecnologie" ":" ReferenceList ] ","
-                        [ "structures" | "strutture" ":" ReferenceList ] ","
-                        [ "units" | "unità" ":" ReferenceList ] ","
-                        [ "bonuses" | "bonus" ":" StringList ]
+                        [ "technologies" ":" ReferenceList ] ","
+                        [ "structures" ":" ReferenceList ] ","
+                        [ "units" ":" ReferenceList ] ","
+                        [ "bonuses" ":" StringList ]
                       "}"
 
 StringList          = "[" StringLiteral { "," StringLiteral } "]"
 ```
 
 #### Trigger Block
-```ebnf
+```lex
 TriggerBlock        = "{"
-                        "condition" | "condizione" ":" Expression ","
-                        [ "probability" | "probabilità" ":" ( Integer | Float | Percentage ) ] ","
+                        "condition" ":" Expression ","
+                        [ "probability" ":" ( Integer | Float | Percentage ) ] ","
                         [ "era" ":" Identifier ] ","
                         [ "flag" ":" Identifier ]
                       "}"
@@ -448,13 +452,13 @@ Used in conditions and triggers.
 ```ebnf
 Expression          = OrExpression
 
-OrExpression        = AndExpression { ( "or" | "o" ) AndExpression }
+OrExpression        = AndExpression { "or" AndExpression }
 
-AndExpression       = ComparisonExpression { ( "and" | "e" ) ComparisonExpression }
+AndExpression       = ComparisonExpression { "and" ComparisonExpression }
 
 ComparisonExpression = NotExpression [ ComparisonOp NotExpression ]
 
-NotExpression       = ( "not" | "non" ) PrimaryExpression
+NotExpression       = "not" PrimaryExpression
                     | PrimaryExpression
 
 PrimaryExpression   = Literal
@@ -640,12 +644,31 @@ effect: {
 
 Defines UI properties for frontend rendering.
 
-```ebnf
+```lex
 UIBlock             = "ui" ":" "{"
-                        [ "icon" | "icona" ":" StringLiteral ] ","
-                        [ "color" | "colore" ":" HexColorLiteral ] ","
+                        [ "icon" ":" StringLiteral ] ","
+                        [ "color" ":" HexColorLiteral ] ","
                         [ "tooltip" ":" TooltipBlock ] ","
-                        [ "panel" | "pannello" ":" PanelBlock ]
+                        [ "panel" ":" PanelBlock
+                      "}"
+
+TooltipBlock        = "{"
+                        [ "title" ":" StringLiteral ] ","
+                        [ "description" ":" StringLiteral ] ","
+                        [ "stats" ":" StringList ] ","
+                        [ "requirements" ":" StringList ]
+                      "}"
+
+PanelBlock          = "{"
+                        [ "components" ":" StringList ] ","
+                        [ "actions" ":" ActionList ]
+                      "}"
+
+ActionList          = "[" ActionDef { "," ActionDef } "]"
+ActionDef           = "{"
+                        "name" ":" StringLiteral ","
+                        "icon" ":" StringLiteral ","
+                        "action" ":" StringLiteral
                       "}"
 
 TooltipBlock        = "{"
@@ -672,12 +695,12 @@ ActionDef           = "{"
 
 Defines AI context for LLM companion.
 
-```ebnf
+```lex
 LoreBlock           = "lore" ":" "{"
-                        [ "quote" | "citazione" ":" StringLiteral ] ","
-                        [ "description" | "descrizione" ":" StringLiteral ] ","
-                        [ "ai_context" | "contesto_ai" ":" StringLiteral ] ","
-                        [ "historical_references" | "riferimenti_storici" ":" StringList ]
+                        [ "quote" ":" StringLiteral ] ","
+                        [ "description" ":" StringLiteral ] ","
+                        [ "ai_context" ":" StringLiteral ] ","
+                        [ "historical_references" ":" StringList ]
                       "}"
 ```
 
@@ -685,30 +708,30 @@ LoreBlock           = "lore" ":" "{"
 
 Defines cross-system integrations.
 
-```ebnf
-IntegrationBlock    = "integrations" | "integrazioni" ":" "{"
-                        [ "economy" | "economia" ":" EconomyBlock ] ","
-                        [ "society" | "società" ":" SocietyBlock ] ","
-                        [ "military" | "militare" ":" MilitaryBlock ]
+```lex
+IntegrationBlock    = "integrations" ":" "{"
+                        [ "economy" ":" EconomyBlock ] ","
+                        [ "society" ":" SocietyBlock ] ","
+                        [ "military" ":" MilitaryBlock ]
                       "}"
 
 EconomyBlock        = "{"
-                        [ "market" | "mercato" ":" MarketBlock ]
+                        [ "market" ":" MarketBlock ]
                       "}"
 
 MarketBlock         = "{"
-                        [ "demand" | "domanda" ":" ResourceMap ] ","
-                        [ "supply" | "offerta" ":" ResourceMap ]
+                        [ "demand" ":" ResourceMap ] ","
+                        [ "supply" ":" ResourceMap ]
                       "}"
 
 SocietyBlock        = "{"
-                        [ "employment" | "impiego" ":" Integer ] ","
-                        [ "health" | "salute" ":" Integer ] ","
-                        [ "happiness" | "felicità" ":" Integer ]
+                        [ "employment" ":" Integer ] ","
+                        [ "health" ":" Integer ] ","
+                        [ "happiness" ":" Integer ]
                       "}"
 
 MilitaryBlock       = "{"
-                        [ "support_units" | "supporto_unità" ":" ReferenceList ]
+                        [ "support_units" ":" ReferenceList ]
                       "}"
 ```
 

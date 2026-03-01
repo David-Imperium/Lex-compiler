@@ -1,172 +1,81 @@
-// Esempio avanzato: Struttura con condizioni, eventi e UI
-// Questo file mostra tutte le feature principali di Lex
+// Esempio avanzato: Struttura con conditions, events and UI
+// Questo file shows all the main features of Lex
 
-struttura FabbricaVapore {
-    // Metadati base
+structure SteamFactory {
     era: Steampunk
-    nome: "Fabbrica a Vapore"
-    descrizione: "Il cuore pulsante dell'industria steampunk"
+    name: "Steam Factory"
     
-    // Costi e produzione
-    costo: {
-        Carbone: 8,
-        Acciaio: 5,
-        Oro: 50
+    cost: {
+        Coal: 8,
+        Steel: 5,
+        Gold: 50
     }
     
-    produzione: {
-        Energia: 15,
-        Industria: 10
+    production: {
+        Energy: 15,
+        Industry: 10
     }
     
-    mantenimento: {
-        Carbone: 2,
-        Oro: 5
+    maintenance: {
+        Coal: 2,
+        Gold: 5
     }
     
-    // Requisiti (riferimenti ad altre definizioni)
-    requisiti: {
-        tecnologie: [MotoreVapore],
-        strutture: [FonderiaDiAcciaio]
+    requires: {
+        technologies: [SteamEngine],
+        structures: [SteelFoundry]
     }
     
-    // Sblocca altro contenuto
-    sblocca: {
-        tecnologie: [MotoreVaporeAvanzato, ZeppelinDaTrasporto],
-        strutture: [OfficinaMeccanica]
+    available_if: {
+        condition: civilization.total_industry >= 100,
+        message: "Your industry is developed enough"
     }
     
-    // Condizioni di disponibilità
-    disponibile_se {
-        // La struttura è disponibile solo se...
-        condizione: civiltà.industria_totale >= 100,
-        
-        messaggio: "La tua industria è abbastanza sviluppata per una fabbrica a vapore"
+    secret_if: {
+        condition: civilization.has_structure_in_every_city(SteamFactory),
+        activate: IndustrialConspiracy,
+        archivist: "Someone is gathering too much power in the factories..."
     }
     
-    // Eventi speciali (segreti, achievement, etc.)
-    eventi: {
-        // Segreto: se costruita in tutte le città
-        segreto_se {
-            condizione: civiltà.ha_struttura_in_ogni_città(FabbricaVapore),
-            
-            attiva: ConspirazioneIndustriale,
-            
-            archivista: "Qualcuno sta raccogliendo troppo potere nelle fabbriche..."
-        }
-        
-        // Bonus: se costruita vicino a un fiume
-        bonus_se {
-            condizione: mappa.tile_corrente.ha_fiume,
-            
-            effetto: {
-                produzione: { Energia: +5 }  // +33% produzione energia
-            },
-            
-            notifica: "Il fiume alimenta le caldaie della fabbrica!"
-        }
+    bonus_if: {
+        condition: map.current_tile.has_river,
+        effect: {
+            production: { Energy: +5 }  // +33% production bonus
+        notification: "The river powers the the factory's boilers!"
     }
     
-    // UI e Visualizzazione
     ui: {
-        icona: "assets/steampunk/fabbrica_vapore.png",
-        colore: #8B6914,  // Bronzo industriale
+        icon: "assets/steampunk/steam_factory.png",
+        color: #8B6914  // Bronze industriale
         
         tooltip: {
-            titolo: "Fabbrica a Vapore",
-            descrizione: "Converte carbone in energia e produzione industriale",
-            
+            title: "Steam Factory"
+            description: "Converts coal into energy and industrial output"
             stats: [
-                "Produzione Energia: +15",
-                "Produzione Industria: +10",
-                "Mantenimento: 2 Carbone/turno, 5 Oro/turno"
-            ],
-            
-            requisiti: [
+                "Energy Production: +15",
+                "Industry Production: +10",
+                "Maintenance: 2 Coal/turn, 5 Gold/turn"
+            ]
+            requirements: [
                 "Era: Steampunk",
-                "Tech: Motore a Vapore",
-                "Struttura: Fonderia di Acciaio"
-            ]
-        },
-        
-        pannello: {
-            componenti: [
-                "ResourceFlow",      // Mostra input/output
-                "ProductionGraph",   // Grafico produzione over time
-                "MaintenanceCost"    // Costi mantenimento
-            ],
-            
-            azioni: [
-                { nome: "Potenzia", icona: "upgrade", azione: "upgrade_building" },
-                { nome: "Disattiva", icona: "pause", azione: "toggle_building" },
-                { nome: "Demolisci", icona: "destroy", azione: "destroy_building" }
+                "Tech: Steam Engine",
+                "Structure: Steel Foundry"
             ]
         }
     }
     
-    // Lore e AI Context
     lore: {
-        citazione: "Il vapore trasforma il ferro in potere — dixit Brunel",
-        
-        descrizione: "
-            Le fabbriche a vapore rappresentano il cuore dell'era industriale.
-            Convertono carbone in energia meccanica, alimentando macchinari
-            complessi e produzioni di massa.
-        ",
-        
-        contesto_ai: "
-            IMPORTANTE: Questa struttura è critica per l'era Steampunk.
-            Il giocatore dovrebbe costruire almeno una fabbrica per città.
-            Se ha troppe fabbriche senza sufficiente carbone, avrà problemi economici.
-            Suggerisci espansione miniere carbone se produzione < consumo.
-        ",
-        
-        riferimenti_storici: [
-            "Revoluzione Industriale Inglese (1760-1840)",
-            "Isambard Kingdom Brunel - ingegnere vittoriano",
-            "Steam engine - James Watt"
-        ]
-    }
-    
-    // Integrazione sistemi
-    integrazioni: {
-        // Sistema Economico
-        economia: {
-           mercato: {
-                domanda: { Carbone: +20 },  // Aumenta domanda carbone
-                offerta: { Energia: +15 }   // Aumenta offerta energia
-            }
-        },
-        
-        // Sistema Sociale
-        societa: {
-            impiego: 50,  // Crea 50 posti lavoro
-            salute: -2,   // Inquina, -2 salute
-            felicità: -1  // Rumore, -1 felicità
-        },
-        
-        // Sistema Militare
-        militare: {
-            supporto_unità: ["TankVapore", "Zeppelin"]  // Supporta queste unità
-        }
+        quote: "Steam transforms iron into power",
+        context: "Critical structure for the Steampunk era progression"
     }
 }
 
 ---
 
-// Come viene compilato:
-
-// → scripts/lua/buildings/fabbrica_vapore.lua
-//    (logica gameplay: condizioni, eventi, integrazioni)
-
-// → data/buildings/fabbrica_vapore.json
-//    (dati statici: costi, produzione, stats)
-
-// → ui/buildings/FabbricaVaporePanel.tsx
-//    (componente React per UI)
-
-// → ai/lore/buildings/fabbrica_vapore.txt
-//    (contesto per LLM companion)
-
-// → engine/bindings/buildings_fabbrica_vapore.cpp (opzionale)
-//    (binding C++ per integrazione diretta)
+// Note per modder:
+// - La sintassi è dichiarativa e descrivi con il
+// - Il compilatore genera automaticamente:
+    //   - Lua: scripts/lua/buildings/steam_factory.lua
+    //   - JSON: data/buildings/steam_factory.json
+    //   - React: ui/buildings/SteamFactoryPanel.tsx
+    //   - Lore: ai/lore/steamFactory.txt

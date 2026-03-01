@@ -251,7 +251,7 @@ return SteamFactory
 // generated/editor/syntax.rs
 pub const LEX_KEYWORDS: &[&str] = &[
     "structure", "unit", "technology", "era", "choice", "ending",
-    "struttura", "unità", "tecnologia", "scelta", "finale",
+    "event", "secret",
     "name", "cost", "production", "maintenance", "description",
     "requires", "unlocks", "when", "if", "available_if"
 ];
@@ -794,7 +794,6 @@ Lex è **engine-agnostic** per definizione:
 
 **1. Syntax Highlighting**
 - tree-sitter grammar generata da Lex
-- Supporto IT/EN keywords
 - Error highlighting
 
 **2. Autocomplete**
