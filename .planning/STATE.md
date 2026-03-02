@@ -1,49 +1,47 @@
 # State
-Updated: 2026-03-01
+Updated: 2026-03-02
 
 ## Active
-- Completamento v0.1.0 (CLI + Validator)
+- v0.2.0 MVP Complete (committed: 055690f)
+- Designing Layer System (aether-like abstraction)
 
 ## Next (Priority Order)
-1. **CLI Implementation** - main.cpp deve leggere file, invocare pipeline, scrivere output
-2. **Validator Implementation** - implementare validator.cpp (header definito)
-3. **Integration Test** - test end-to-end con file .lex reali in docs/examples/
-4. **v0.2.0 Backends** - JSON, React, Lore backends
-5. **Error Reporting** - formattazione con line/column
+1. **Layer System Design** - namespace/abstract layer separation
+2. **React/TypeScript Backend** - UI component generation
+3. **Lore Backend** - AI context for narrative systems
+4. **Direct Imperium Integration** - output to `C:\Imperium 2.0\data\`
+5. **VS Code Extension** - syntax highlighting, autocomplete
 
-## Recent (Completed)
-- [x] Lexer completo con test (13+ test cases)
-- [x] Parser completo con test (17+ test cases totali)
-  - Definition types: era, structure, unit, technology, resource, choice, ending, event, secret
-  - Property parsing con Expression, ResourceMap, ReferenceList
-  - Condition parsing (when, if, available_if, etc.)
-  - Error recovery
-- [x] AST completo con 10 definition types + conditions + properties
-- [x] Lua backend funzionante
-- [x] Catch2 test framework configurato
+## Recent (Completed - Commit 055690f)
+- [x] CLI Implementation - full argument parsing, multi-target support
+- [x] Validator Implementation - semantic analysis with errors/warnings
+- [x] JSON Backend - Imperium engine integration
+- [x] Parser Fix - `{}` resource map syntax support
+- [x] Parser Fix - string handling in reference lists
+- [x] Documentation updates (14 files, 1132 insertions)
 
 ## Component Status
 
 | Component | Status | Files |
 |-----------|--------|-------|
 | Lexer | Completo | token.h, keywords.h, lexer.h/cpp |
-| Parser | Completo | parser.h/cpp, validator.h |
+| Parser | Completo | parser.h/cpp (con parse_brace_value) |
 | AST | Completo | ast.h/cpp |
-| Validator | Header only | validator.h (manca .cpp) |
+| Validator | Completo | validator.h/cpp |
 | CodeGen Lua | Completo | backend.h, lua_backend.h/cpp |
-| CodeGen JSON | Non iniziato | - |
+| CodeGen JSON | Completo | json_backend.h/cpp |
 | CodeGen React | Non iniziato | - |
 | CodeGen Lore | Non iniziato | - |
-| CLI | Stub | main.cpp (solo hello world) |
+| CLI | Completo | main.cpp (multi-target) |
 | Tests | Attivo | test_main.cpp (547 righe) |
 
 ## Metrics
 
 | Metrica | Valore |
 |---------|--------|
-| Righe codice src/ | ~12K |
+| Righe codice src/ | ~14K |
 | Test totali | 17+ |
-| Backends supportati | 1 (Lua) |
+| Backends supportati | 2 (Lua, JSON) |
 | Definition types | 10 |
 | Keywords | 50+ |
 
@@ -53,3 +51,4 @@ Updated: 2026-03-01
 - STATE.md - questo file
 - LEX_ARCHITECTURE.md - se cambiano componenti
 - LEX_SPECIFICATION.md - se cambiano keywords/sintassi
+- ROADMAP.md - prossimi obiettivi

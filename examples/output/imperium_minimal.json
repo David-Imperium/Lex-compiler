@@ -1,0 +1,120 @@
+{
+  "version": "1.0",
+  "generated_by": "Lex Compiler v0.1.0",
+  "eras": {
+    "Ancient": {
+      "id": "Ancient",
+      "name": "Ancient Era",
+      "period": "3000 BCE - 500 CE",
+      "description": "The dawn of civilization. Basic agriculture, simple tools, and the first cities.",
+      "atmosphere": "pastoral, sunny, peaceful",
+      "music": "ancient_ost"
+    },
+    "Steampunk": {
+      "id": "Steampunk",
+      "name": "Steampunk Era",
+      "period": "1850 - 1920",
+      "description": "The age of steam, mechanical engineering, and industrial revolution.",
+      "atmosphere": "industrial, foggy, mechanical",
+      "music": "steampunk_ost"
+    }
+  },
+  "structures": {
+    "Farm": {
+      "id": "Farm",
+      "era": "Ancient",
+      "name": "Farm",
+      "cost": {"Gold": 30, "Wood": 15},
+      "production": {"Gold": 5},
+      "maintenance": {"Gold": 1},
+      "description": "Produces food and basic resources for your civilization."
+    },
+    "Barracks": {
+      "id": "Barracks",
+      "era": "Ancient",
+      "name": "Barracks",
+      "cost": {"Gold": 50, "Wood": 25},
+      "maintenance": {"Gold": 3},
+      "description": "Trains basic military units."
+    },
+    "Library": {
+      "id": "Library",
+      "era": "Ancient",
+      "name": "Library",
+      "cost": {"Gold": 80, "Wood": 40},
+      "production": {"Research": 10},
+      "maintenance": {"Gold": 5},
+      "description": "Generates research points for technological advancement."
+    },
+    "SteamFactory": {
+      "id": "SteamFactory",
+      "era": "Steampunk",
+      "name": "Steam Factory",
+      "cost": {"Coal": 8, "Gold": 50, "Steel": 5},
+      "production": {"Energy": 15, "Industry": 10},
+      "maintenance": {"Coal": 2, "Gold": 5},
+      "description": "Converts coal into energy and industrial output."
+    },
+    "ResearchLab": {
+      "id": "ResearchLab",
+      "era": "Steampunk",
+      "name": "Research Laboratory",
+      "cost": {"Energy": 5, "Gold": 100, "Steel": 10},
+      "production": {"Research": 25},
+      "maintenance": {"Coal": 3, "Gold": 10},
+      "description": "Advanced research facility for modern technologies."
+    }
+  },
+  "units": {
+    "Warrior": {
+      "id": "Warrior",
+      "era": "Ancient",
+      "name": "Warrior",
+      "type": "infantry",
+      "attack": 5,
+      "defense": 3,
+      "movement": 2,
+      "cost": {"Gold": 20},
+      "maintenance": {"Gold": 2}
+    },
+    "Archer": {
+      "id": "Archer",
+      "era": "Ancient",
+      "name": "Archer",
+      "type": "ranged",
+      "attack": 7,
+      "defense": 1,
+      "movement": 2,
+      "cost": {"Gold": 25, "Wood": 5},
+      "maintenance": {"Gold": 2}
+    },
+    "SteamTank": {
+      "id": "SteamTank",
+      "era": "Steampunk",
+      "name": "Steam Tank",
+      "type": "armored",
+      "attack": 15,
+      "defense": 12,
+      "movement": 1,
+      "cost": {"Coal": 10, "Gold": 80, "Steel": 15},
+      "maintenance": {"Coal": 3, "Gold": 8}
+    }
+  },
+  "technologies": {
+    "SteamEngine": {
+      "id": "SteamEngine",
+      "era": "Steampunk",
+      "name": "Steam Engine",
+      "research_cost": 100,
+      "description": "Harness the power of steam for industry and transportation."
+    },
+    "IndustrialChemistry": {
+      "id": "IndustrialChemistry",
+      "era": "Steampunk",
+      "name": "Industrial Chemistry",
+      "research_cost": 150,
+      "prerequisites": ["SteamEngine"],
+      "description": "Advanced chemical processes for industry."
+    }
+  }
+}

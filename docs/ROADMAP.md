@@ -1,75 +1,79 @@
 # Lex Development Roadmap
 
-**Version:** 0.1.0
-**Last Updated:** 2026-03-01
+**Version:** 0.2.0
+**Last Updated:** 2026-03-02
 
 ---
 
-## Current Status: v0.1.0 (Core Complete)
+## Current Status: v0.2.0 (MVP Complete)
 
 ### Completed
 | Component | Status | Notes |
 |-----------|--------|-------|
 | Lexer | Done | 50+ keywords, full literal support |
-| Parser | Done | 10 definition types, conditions, error recovery |
+| Parser | Done | 10 definition types, conditions, error recovery, `{}` resource maps |
 | AST | Done | Type-safe, visitor pattern |
+| Validator | Done | Semantic analysis with errors/warnings separation |
 | Lua Backend | Done | Code generation functional |
+| JSON Backend | Done | Imperium engine integration |
+| CLI | Done | Multi-target support (`-t lua,json`) |
 | Tests | Active | 17+ test cases with Catch2 |
 
-### Missing for v0.1.1
-- [ ] CLI tool (`lexc`) - read files, invoke pipeline, write output
-- [ ] Semantic Validator - cross-reference checking, required properties
-- [ ] Integration tests with real `.lex` files
+### Latest Commit
+`055690f` - feat: Add JSON backend, CLI multi-target, and semantic validator
 
 ---
 
-## Short Term: v0.1.1 (Target: 2026-03-08)
+## Short Term: v0.2.1 (Target: 2026-03-09)
 
 ### Goals
-Complete the transpiler into a usable CLI tool.
+Enhanced developer experience and additional backends.
 
 ### Tasks
-1. **CLI Implementation** (`src/main.cpp`)
-   - Parse command line arguments
-   - Read `.lex` source files
-   - Invoke: Lexer → Parser → Validator → Backend
-   - Write output files
-   - Error reporting with file:line:column format
+1. **React/TypeScript Backend** (`src/codegen/react_backend.cpp`)
+   - Generate TypeScript interfaces from definitions
+   - React component props for UI panels
+   - Type-safe game data consumption
 
-2. **Semantic Validator** (`src/parser/validator.cpp`)
-   - Symbol table construction
-   - Cross-reference validation (references exist)
-   - Required property checking per definition type
-   - Type compatibility checks
+2. **Lore Backend** (`src/codegen/lore_backend.cpp`)
+   - AI context generation for narrative systems
+   - Markdown/structured text output
+   - Companion AI integration
 
-3. **Integration Testing**
-   - Test with `docs/examples/*.lex` files
-   - Verify Lua output is valid and runnable
-   - Error case testing
+3. **Layer System Design** (New Feature)
+   - Abstract/Concrete layer separation
+   - Namespace-based organization
+   - Cross-layer references
 
 ### Success Criteria
 ```bash
-# This should work:
-lexc input.lex -o output/ --target lua
-# Produces: output/*.lua
+# Multi-target output:
+lexc game.lex -o output/ -t lua,json,react
+# Produces: output/*.lua, output/*.json, output/*.ts
 ```
 
 ---
 
-## Medium Term: v0.2.0 (Target: 2026-03-22)
+## Medium Term: v0.3.0 (Target: 2026-03-22)
 
 ### Goals
-Multi-target code generation.
-
-### New Backends
-1. **JSON Backend** - Data definitions for game configs
-2. **React/TypeScript Backend** - UI component generation
-3. **Lore Backend** - AI context for narrative systems
+Developer experience and direct engine integration.
 
 ### Features
-- Backend selection via CLI: `--target lua,json,react`
-- Hot-reload support for development
-- Source mapping for debugging
+1. **Layer System** - Abstract/Concrete separation like Aether
+   - `namespace aether { }` for abstract definitions
+   - Cross-layer inheritance and references
+   - Validation across layers
+
+2. **Direct Imperium Integration**
+   - Output to `C:\Imperium 2.0\data\`
+   - Hot-reload support for development
+   - Source mapping for debugging
+
+3. **VS Code Extension**
+   - Syntax highlighting
+   - Autocomplete
+   - Go to definition
 
 ### Integration
 - ModManager Imperium plugin
