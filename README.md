@@ -1,8 +1,8 @@
 # Lex Compiler
 
-[![CI](https://github.com/David/Lex-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/David/Lex-compiler/actions/workflows/ci.yml)
+[![CI](https://github.com/David-Imperium/Lex-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/David-Imperium/Lex-compiler/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/David/Lex-compiler)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/David-Imperium/Lex-compiler)
 
 A declarative, multi-target transpiler for game content.
 
@@ -12,7 +12,7 @@ A declarative, multi-target transpiler for game content.
 
 ```bash
 # Clone and build
-git clone https://github.com/David/Lex-compiler.git
+git clone https://github.com/David-Imperium/Lex-compiler.git
 cd lex
 cmake -B build -S .
 cmake --build build --config Release
