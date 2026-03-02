@@ -2,10 +2,11 @@ cmake_minimum_required(VERSION 3.20)
 
 find_package(Catch2 3 REQUIRED)
 
-add_executable(lexer_tests 
+add_executable(lexer_tests
     test_main.cpp
     ${CMAKE_SOURCE_DIR}/src/lexer/lexer.cpp
     ${CMAKE_SOURCE_DIR}/src/parser/parser.cpp
+    ${CMAKE_SOURCE_DIR}/src/ast/ast.cpp
 )
 
 target_include_directories(lexer_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)

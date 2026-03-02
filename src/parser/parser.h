@@ -59,9 +59,17 @@ private:
     std::unique_ptr<ResourceMap> parse_resource_map_content();
     std::unique_ptr<ReferenceList> parse_reference_list_content();
 
-    // Expression parsing
-    std::unique_ptr<Expression> parse_expression();
+    // Expression parsing (Pratt parser with operator precedence)
+    std::unique_ptr<Expression> parse_expression(int min_precedence = 0);
     std::unique_ptr<Expression> parse_primary();
+    std::unique_ptr<Expression> parse_unary();
+    std::unique_ptr<Expression> parse_postfix(std::unique_ptr<Expression> expr);
+    std::unique_ptr<Expression> parse_member_or_call(const std::string& identifier);
+
+    // Operator helpers
+    int get_operator_precedence(TokenType type);
+    Expression::BinaryOp token_to_binary_op(TokenType type);
+    Expression::UnaryOp token_to_unary_op(TokenType type);
 
     // Condition parsing
     std::unique_ptr<Condition> parse_condition();

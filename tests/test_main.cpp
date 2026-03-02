@@ -536,11 +536,330 @@ TEST_CASE("Parser - Error Recovery") {
     SECTION("missing brace") {
         Lexer lexer("structure Farm { era: Ancient");
         auto tokens = lexer.tokenize();
-        
+
         Parser parser(tokens);
         auto ast = parser.parse();
-        
+
         REQUIRE(parser.has_errors());
+    }
+}
+
+// ============================================================================
+// Expression Parser Tests
+// ============================================================================
+
+TEST_CASE("Expression Parser - Arithmetic") {
+    SECTION("simple addition in property") {
+        Lexer lexer(R"(structure Test { cost: 10 + 5 })");
+        auto tokens = lexer.tokenize();
+        REQUIRE(!lexer.has_errors());
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+        REQUIRE(ast.size() == 1);
+
+        // Check that we parsed a property with a binary expression
+        auto& props = ast[0]->properties;
+        REQUIRE(props.size() == 1);
+        REQUIRE(props[0]->name == "cost");
+
+        auto& expr = props[0]->value->expression;
+        REQUIRE(expr->type == Expression::Type::BINARY);
+        REQUIRE(expr->binary_op == Expression::BinaryOp::ADD);
+    }
+
+    SECTION("operator precedence - mul before add") {
+        Lexer lexer(R"(structure Test { cost: 10 + 5 * 2 })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+
+        auto& expr = ast[0]->properties[0]->value->expression;
+        REQUIRE(expr->type == Expression::Type::BINARY);
+        REQUIRE(expr->binary_op == Expression::BinaryOp::ADD);
+
+        // Left should be 10, right should be (5 * 2)
+        REQUIRE(expr->left->type == Expression::Type::INTEGER);
+        REQUIRE(std::get<int64_t>(expr->left->value) == 10);
+
+        REQUIRE(expr->right->type == Expression::Type::BINARY);
+        REQUIRE(expr->right->binary_op == Expression::BinaryOp::MUL);
+    }
+
+    SECTION("parentheses override precedence") {
+        Lexer lexer(R"(structure Test { cost: (10 + 5) * 2 })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+
+        auto& expr = ast[0]->properties[0]->value->expression;
+        REQUIRE(expr->type == Expression::Type::BINARY);
+        REQUIRE(expr->binary_op == Expression::BinaryOp::MUL);
+
+        // Left should be (10 + 5), right should be 2
+        REQUIRE(expr->left->type == Expression::Type::BINARY);
+        REQUIRE(expr->left->binary_op == Expression::BinaryOp::ADD);
+
+        REQUIRE(expr->right->type == Expression::Type::INTEGER);
+        REQUIRE(std::get<int64_t>(expr->right->value) == 2);
+    }
+}
+
+TEST_CASE("Expression Parser - Comparisons") {
+    SECTION("greater than") {
+        Lexer lexer(R"(structure Test { available_if population > 100 {} })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+        REQUIRE(ast[0]->conditions.size() == 1);
+
+        auto& cond = ast[0]->conditions[0];
+        REQUIRE(cond->trigger == "available_if");
+        REQUIRE(cond->expression->type == Expression::Type::BINARY);
+        REQUIRE(cond->expression->binary_op == Expression::BinaryOp::GT);
+    }
+
+    SECTION("equality") {
+        Lexer lexer(R"(structure Test { available_if era == Steampunk {} })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+
+        auto& expr = ast[0]->conditions[0]->expression;
+        REQUIRE(expr->type == Expression::Type::BINARY);
+        REQUIRE(expr->binary_op == Expression::BinaryOp::EQ);
+    }
+
+    SECTION("less than or equal") {
+        Lexer lexer(R"(structure Test { available_if happiness <= 30 {} })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+
+        auto& expr = ast[0]->conditions[0]->expression;
+        REQUIRE(expr->type == Expression::Type::BINARY);
+        REQUIRE(expr->binary_op == Expression::BinaryOp::LE);
+    }
+}
+
+TEST_CASE("Expression Parser - Logical Operators") {
+    SECTION("and operator") {
+        Lexer lexer(R"(structure Test { available_if population > 100 and happiness > 50 {} })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        if (parser.has_errors()) {
+            for (const auto& err : parser.errors()) {
+                UNSCOPED_INFO("Parser error: " << err);
+            }
+        }
+        REQUIRE(!parser.has_errors());
+
+        auto& expr = ast[0]->conditions[0]->expression;
+        REQUIRE(expr->type == Expression::Type::BINARY);
+        REQUIRE(expr->binary_op == Expression::BinaryOp::AND);
+    }
+
+    SECTION("or operator") {
+        Lexer lexer(R"(structure Test { available_if has_tech or has_gold {} })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+
+        auto& expr = ast[0]->conditions[0]->expression;
+        REQUIRE(expr->type == Expression::Type::BINARY);
+        REQUIRE(expr->binary_op == Expression::BinaryOp::OR);
+    }
+
+    SECTION("not operator") {
+        Lexer lexer(R"(structure Test { available_if not is_raining {} })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+
+        auto& expr = ast[0]->conditions[0]->expression;
+        REQUIRE(expr->type == Expression::Type::UNARY);
+        REQUIRE(expr->unary_op == Expression::UnaryOp::NOT);
+    }
+
+    SECTION("complex logical expression") {
+        Lexer lexer(R"(structure Test { available_if a > 5 and b < 10 or c == 0 {} })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+
+        // OR should be at the top (lowest precedence)
+        auto& expr = ast[0]->conditions[0]->expression;
+        REQUIRE(expr->type == Expression::Type::BINARY);
+        REQUIRE(expr->binary_op == Expression::BinaryOp::OR);
+
+        // Left side should be AND
+        REQUIRE(expr->left->type == Expression::Type::BINARY);
+        REQUIRE(expr->left->binary_op == Expression::BinaryOp::AND);
+    }
+}
+
+TEST_CASE("Expression Parser - Member Access") {
+    SECTION("simple member access") {
+        Lexer lexer(R"(structure Test { available_if city.population > 100 {} })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+
+        auto& expr = ast[0]->conditions[0]->expression;
+        REQUIRE(expr->type == Expression::Type::BINARY);
+        REQUIRE(expr->binary_op == Expression::BinaryOp::GT);
+
+        // Left should be member access
+        REQUIRE(expr->left->type == Expression::Type::MEMBER);
+        REQUIRE(expr->left->member_name == "population");
+        REQUIRE(expr->left->object->type == Expression::Type::REFERENCE);
+        REQUIRE(expr->left->object->reference == "city");
+    }
+
+    SECTION("chained member access") {
+        Lexer lexer(R"(structure Test { available_if civilization.cities.count > 5 {} })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+
+        auto& expr = ast[0]->conditions[0]->expression;
+        REQUIRE(expr->type == Expression::Type::BINARY);
+
+        // Navigate the chain: civilization.cities.count
+        auto& left = expr->left;
+        REQUIRE(left->type == Expression::Type::MEMBER);
+        REQUIRE(left->member_name == "count");
+
+        REQUIRE(left->object->type == Expression::Type::MEMBER);
+        REQUIRE(left->object->member_name == "cities");
+
+        REQUIRE(left->object->object->type == Expression::Type::REFERENCE);
+        REQUIRE(left->object->object->reference == "civilization");
+    }
+}
+
+TEST_CASE("Expression Parser - Function Calls") {
+    SECTION("simple function call") {
+        Lexer lexer(R"(structure Test { available_if has_technology(SteamEngine) {} })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+
+        auto& expr = ast[0]->conditions[0]->expression;
+        REQUIRE(expr->type == Expression::Type::CALL);
+        REQUIRE(expr->function_name == "has_technology");
+        REQUIRE(expr->arguments.size() == 1);
+        REQUIRE(expr->arguments[0]->type == Expression::Type::REFERENCE);
+        REQUIRE(expr->arguments[0]->reference == "SteamEngine");
+    }
+
+    SECTION("function call with multiple arguments") {
+        Lexer lexer(R"(structure Test { available_if count_units(Warrior, Knight) > 5 {} })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+
+        auto& expr = ast[0]->conditions[0]->expression;
+        REQUIRE(expr->type == Expression::Type::BINARY);
+
+        // Left is the call
+        auto& call = expr->left;
+        REQUIRE(call->type == Expression::Type::CALL);
+        REQUIRE(call->function_name == "count_units");
+        REQUIRE(call->arguments.size() == 2);
+    }
+
+    SECTION("function call with expression argument") {
+        Lexer lexer(R"(structure Test { available_if calculate(a + b) {} })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+
+        auto& expr = ast[0]->conditions[0]->expression;
+        REQUIRE(expr->type == Expression::Type::CALL);
+
+        auto& arg = expr->arguments[0];
+        REQUIRE(arg->type == Expression::Type::BINARY);
+        REQUIRE(arg->binary_op == Expression::BinaryOp::ADD);
+    }
+}
+
+TEST_CASE("Expression Parser - Unary Negation") {
+    SECTION("negative number in property") {
+        Lexer lexer(R"(structure Test { cost: -50 })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+
+        auto& expr = ast[0]->properties[0]->value->expression;
+        REQUIRE(expr->type == Expression::Type::UNARY);
+        REQUIRE(expr->unary_op == Expression::UnaryOp::NEG);
+        REQUIRE(expr->operand->type == Expression::Type::INTEGER);
+        REQUIRE(std::get<int64_t>(expr->operand->value) == 50);
+    }
+
+    SECTION("negative in expression") {
+        Lexer lexer(R"(structure Test { cost: 100 + -50 })");
+        auto tokens = lexer.tokenize();
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+
+        REQUIRE(!parser.has_errors());
+
+        auto& expr = ast[0]->properties[0]->value->expression;
+        REQUIRE(expr->type == Expression::Type::BINARY);
+
+        // Right side should be unary negation
+        REQUIRE(expr->right->type == Expression::Type::UNARY);
+        REQUIRE(expr->right->unary_op == Expression::UnaryOp::NEG);
     }
 }
 

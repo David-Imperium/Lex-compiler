@@ -639,52 +639,276 @@ std::unique_ptr<ReferenceList> Parser::parse_reference_list_content() {
 }
 
 // ============================================================================
-// Expression Parsing
+// Expression Parsing (Pratt Parser with Precedence)
 // ============================================================================
 
-std::unique_ptr<Expression> Parser::parse_expression() {
+// Operator precedence (higher = binds tighter)
+int Parser::get_operator_precedence(TokenType type) {
+    switch (type) {
+        // Lowest precedence
+        case TokenType::OR:
+            return 1;
+        case TokenType::AND:
+            return 2;
+        case TokenType::EQ:
+        case TokenType::NE:
+            return 3;
+        case TokenType::GT:
+        case TokenType::LT:
+        case TokenType::GE:
+        case TokenType::LE:
+            return 4;
+        case TokenType::PLUS:
+        case TokenType::MINUS:
+            return 5;
+        case TokenType::STAR:
+        case TokenType::SLASH:
+        case TokenType::PERCENT:
+            return 6;
+        // Highest precedence
+        default:
+            return 0;  // Not a binary operator
+    }
+}
+
+Expression::BinaryOp Parser::token_to_binary_op(TokenType type) {
+    switch (type) {
+        case TokenType::PLUS:    return Expression::BinaryOp::ADD;
+        case TokenType::MINUS:   return Expression::BinaryOp::SUB;
+        case TokenType::STAR:    return Expression::BinaryOp::MUL;
+        case TokenType::SLASH:   return Expression::BinaryOp::DIV;
+        case TokenType::PERCENT: return Expression::BinaryOp::MOD;
+        case TokenType::EQ:      return Expression::BinaryOp::EQ;
+        case TokenType::NE:      return Expression::BinaryOp::NE;
+        case TokenType::GT:      return Expression::BinaryOp::GT;
+        case TokenType::LT:      return Expression::BinaryOp::LT;
+        case TokenType::GE:      return Expression::BinaryOp::GE;
+        case TokenType::LE:      return Expression::BinaryOp::LE;
+        case TokenType::AND:     return Expression::BinaryOp::AND;
+        case TokenType::OR:      return Expression::BinaryOp::OR;
+        default:                 return Expression::BinaryOp::ADD;  // Should never happen
+    }
+}
+
+Expression::UnaryOp Parser::token_to_unary_op(TokenType type) {
+    switch (type) {
+        case TokenType::NOT:   return Expression::UnaryOp::NOT;
+        case TokenType::MINUS: return Expression::UnaryOp::NEG;
+        default:               return Expression::UnaryOp::NOT;  // Should never happen
+    }
+}
+
+std::unique_ptr<Expression> Parser::parse_expression(int min_precedence) {
+    // Parse left-hand side (unary or primary)
+    auto left = parse_unary();
+    if (!left) {
+        return left;
+    }
+
+    // Handle postfix (member access, function calls)
+    left = parse_postfix(std::move(left));
+
+    // Parse binary operators with precedence climbing
+    while (true) {
+        TokenType op_type = current().type;
+        int precedence = get_operator_precedence(op_type);
+
+        // Stop if not a binary operator (precedence == 0) or precedence too low
+        if (precedence == 0) {
+            break;
+        }
+        if (precedence < min_precedence) {
+            break;
+        }
+
+        // Consume the operator
+        pos_++;
+
+        // Parse right-hand side with higher precedence
+        auto right = parse_expression(precedence + 1);
+        if (!right) {
+            error("Expected expression after operator");
+            break;
+        }
+
+        // Build binary expression
+        left = Expression::make_binary(token_to_binary_op(op_type),
+                                        std::move(left),
+                                        std::move(right));
+    }
+
+    return left;
+}
+
+std::unique_ptr<Expression> Parser::parse_unary() {
+    // Check for unary operators: not, -
+    if (check(TokenType::NOT)) {
+        pos_++;
+        auto operand = parse_unary();  // Right-associative
+        if (!operand) {
+            error("Expected expression after 'not'");
+            return Expression::make_bool(false);
+        }
+        return Expression::make_unary(Expression::UnaryOp::NOT, std::move(operand));
+    }
+
+    if (check(TokenType::MINUS)) {
+        pos_++;
+        auto operand = parse_unary();  // Right-associative
+        if (!operand) {
+            error("Expected expression after '-'");
+            return Expression::make_integer(0);
+        }
+        return Expression::make_unary(Expression::UnaryOp::NEG, std::move(operand));
+    }
+
     return parse_primary();
+}
+
+std::unique_ptr<Expression> Parser::parse_postfix(std::unique_ptr<Expression> expr) {
+    // Handle member access: expr.member
+    while (check(TokenType::DOT)) {
+        pos_++;  // consume '.'
+
+        // Member name can be an identifier or a property keyword (e.g., city.population)
+        std::string member;
+        if (check(TokenType::IDENTIFIER)) {
+            member = current().lexeme;
+            pos_++;
+        } else if (is_property_keyword(current().type)) {
+            member = property_token_to_string(current().type);
+            if (member.empty()) member = current().lexeme;
+            pos_++;
+        } else {
+            error("Expected member name after '.'");
+            break;
+        }
+
+        expr = Expression::make_member(std::move(expr), member);
+    }
+
+    return expr;
+}
+
+std::unique_ptr<Expression> Parser::parse_member_or_call(const std::string& identifier) {
+    auto expr = Expression::make_reference(identifier);
+
+    // Handle member access
+    expr = parse_postfix(std::move(expr));
+
+    // Handle function call
+    if (check(TokenType::LEFT_PAREN)) {
+        pos_++;  // consume '('
+
+        std::vector<std::unique_ptr<Expression>> args;
+
+        // Parse arguments
+        if (!check(TokenType::RIGHT_PAREN)) {
+            do {
+                auto arg = parse_expression();
+                if (arg) {
+                    args.push_back(std::move(arg));
+                }
+            } while (match(TokenType::COMMA));
+        }
+
+        consume(TokenType::RIGHT_PAREN, "Expected ')' after arguments");
+
+        // Convert to call expression
+        // If it was a member access, the function_name should be the full path
+        std::string func_name;
+        if (expr->type == Expression::Type::MEMBER) {
+            // For now, flatten member access to function name
+            // e.g., civ.population -> we store "population" and object separately
+            // But for a call like obj.method(), we need to handle it properly
+            func_name = expr->member_name;
+            // Keep the object for potential method call semantics
+        } else {
+            func_name = expr->reference;
+        }
+
+        return Expression::make_call(func_name, std::move(args));
+    }
+
+    return expr;
 }
 
 std::unique_ptr<Expression> Parser::parse_primary() {
     auto expr = std::make_unique<Expression>();
-    
+
     if (check(TokenType::INTEGER)) {
         expr->type = Expression::Type::INTEGER;
         expr->value = std::get<int64_t>(current().value);
         pos_++;
-    } else if (check(TokenType::FLOAT)) {
+        return expr;
+    }
+
+    if (check(TokenType::FLOAT)) {
         expr->type = Expression::Type::FLOAT;
         expr->value = std::get<double>(current().value);
         pos_++;
-    } else if (check(TokenType::STRING)) {
+        return expr;
+    }
+
+    if (check(TokenType::STRING)) {
         expr->type = Expression::Type::STRING;
         expr->value = std::get<std::string>(current().value);
         pos_++;
-    } else if (check(TokenType::HEX_COLOR)) {
+        return expr;
+    }
+
+    if (check(TokenType::HEX_COLOR)) {
         expr->type = Expression::Type::COLOR;
         expr->value = current().lexeme;
         pos_++;
-    } else if (check(TokenType::TRUE)) {
+        return expr;
+    }
+
+    if (check(TokenType::TRUE)) {
         expr->type = Expression::Type::BOOLEAN;
         expr->value = true;
         pos_++;
-    } else if (check(TokenType::FALSE)) {
+        return expr;
+    }
+
+    if (check(TokenType::FALSE)) {
         expr->type = Expression::Type::BOOLEAN;
         expr->value = false;
         pos_++;
-    } else if (check(TokenType::NULL_LIT)) {
-        expr->type = Expression::Type::NULL_VAL;
-        pos_++;
-    } else if (check(TokenType::IDENTIFIER)) {
-        expr->type = Expression::Type::REFERENCE;
-        expr->reference = current().lexeme;
-        pos_++;
-    } else {
-        error("Expected expression");
-        expr->type = Expression::Type::NULL_VAL;
+        return expr;
     }
-    
+
+    if (check(TokenType::NULL_LIT)) {
+        expr->type = Expression::Type::NULL_VAL;
+        pos_++;
+        return expr;
+    }
+
+    if (check(TokenType::IDENTIFIER)) {
+        std::string name = current().lexeme;
+        pos_++;
+        return parse_member_or_call(name);
+    }
+
+    // Property keywords can also be used as identifiers in expressions
+    // (e.g., "population" in "population > 100")
+    if (is_property_keyword(current().type)) {
+        std::string name = property_token_to_string(current().type);
+        if (name.empty()) name = current().lexeme;
+        pos_++;
+        return parse_member_or_call(name);
+    }
+
+    // Grouped expression: (expr)
+    if (check(TokenType::LEFT_PAREN)) {
+        pos_++;  // consume '('
+        auto grouped = parse_expression();
+        consume(TokenType::RIGHT_PAREN, "Expected ')' after expression");
+        return grouped;
+    }
+
+    error("Expected expression");
+    expr->type = Expression::Type::NULL_VAL;
     return expr;
 }
 
@@ -694,7 +918,7 @@ std::unique_ptr<Expression> Parser::parse_primary() {
 
 std::unique_ptr<Condition> Parser::parse_condition() {
     auto cond = std::make_unique<Condition>();
-    
+
     // Get the trigger type
     if (check(TokenType::WHEN)) {
         cond->trigger = "when";
@@ -713,25 +937,25 @@ std::unique_ptr<Condition> Parser::parse_condition() {
         return nullptr;
     }
     pos_++;  // Consume trigger
-    
-    // Parse condition expression (simplified - just collect until '{')
-    std::stringstream expr_stream;
-    while (!check(TokenType::LEFT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        expr_stream << current().lexeme << " ";
-        pos_++;
+
+    // Parse condition expression using the full expression parser
+    cond->expression = parse_expression();
+
+    if (!cond->expression) {
+        error("Expected condition expression");
+        return nullptr;
     }
-    cond->expression = expr_stream.str();
-    
+
     // Parse block
     consume(TokenType::LEFT_BRACE, "Expected '{' after condition");
-    
+
     while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
         auto prop = parse_property();
         if (prop) cond->properties.push_back(std::move(prop));
     }
-    
+
     consume(TokenType::RIGHT_BRACE, "Expected '}' after condition block");
-    
+
     return cond;
 }
 

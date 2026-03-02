@@ -25,15 +25,64 @@ public:
 };
 
 // ============================================================================
-// Expressions (literals and references)
+// Expressions (literals, references, operators, calls)
 // ============================================================================
 
 class Expression : public ASTNode {
 public:
-    enum class Type { INTEGER, FLOAT, STRING, BOOLEAN, COLOR, NULL_VAL, REFERENCE };
+    enum class Type {
+        INTEGER, FLOAT, STRING, BOOLEAN, COLOR, NULL_VAL, REFERENCE,
+        BINARY, UNARY, CALL, MEMBER
+    };
+
+    // Binary operators
+    enum class BinaryOp {
+        ADD, SUB, MUL, DIV, MOD,           // Arithmetic: + - * / %
+        EQ, NE, GT, LT, GE, LE,            // Comparison: == != > < >= <=
+        AND, OR                            // Logical: and or
+    };
+
+    // Unary operators
+    enum class UnaryOp { NOT, NEG };       // Logical: not, Arithmetic: -
+
     Type type = Type::NULL_VAL;
+
+    // For literals and references
     std::variant<int64_t, double, std::string, bool> value;
-    std::string reference;  // Only used for REFERENCE type
+    std::string reference;
+
+    // For binary expressions (type == BINARY)
+    BinaryOp binary_op = BinaryOp::ADD;
+    std::unique_ptr<Expression> left;
+    std::unique_ptr<Expression> right;
+
+    // For unary expressions (type == UNARY)
+    UnaryOp unary_op = UnaryOp::NOT;
+    std::unique_ptr<Expression> operand;
+
+    // For call expressions (type == CALL)
+    std::string function_name;
+    std::vector<std::unique_ptr<Expression>> arguments;
+
+    // For member expressions (type == MEMBER)
+    std::unique_ptr<Expression> object;
+    std::string member_name;
+
+    // Convenience factory methods
+    static std::unique_ptr<Expression> make_integer(int64_t val);
+    static std::unique_ptr<Expression> make_float(double val);
+    static std::unique_ptr<Expression> make_string(const std::string& val);
+    static std::unique_ptr<Expression> make_bool(bool val);
+    static std::unique_ptr<Expression> make_reference(const std::string& name);
+    static std::unique_ptr<Expression> make_binary(BinaryOp op,
+                                                    std::unique_ptr<Expression> left,
+                                                    std::unique_ptr<Expression> right);
+    static std::unique_ptr<Expression> make_unary(UnaryOp op,
+                                                   std::unique_ptr<Expression> operand);
+    static std::unique_ptr<Expression> make_call(const std::string& name,
+                                                  std::vector<std::unique_ptr<Expression>> args);
+    static std::unique_ptr<Expression> make_member(std::unique_ptr<Expression> obj,
+                                                    const std::string& member);
 };
 
 // ============================================================================
@@ -78,7 +127,7 @@ public:
 class Condition : public ASTNode {
 public:
     std::string trigger;  // "when", "if", "available_if", etc.
-    std::string expression;  // Raw condition expression (for now)
+    std::unique_ptr<Expression> expression;  // Parsed condition expression
     std::vector<std::unique_ptr<Property>> properties;
 };
 
