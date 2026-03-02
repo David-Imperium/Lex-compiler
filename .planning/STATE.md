@@ -9,7 +9,7 @@ Updated: 2026-03-02
 1. **Layer System Design** - namespace/abstract layer separation
 2. **React/TypeScript Backend** - UI component generation
 3. **Lore Backend** - AI context for narrative systems
-4. **Direct Imperium Integration** - output to `C:\Imperium 2.0\data\`
+4. **Direct Imperium Integration** - output to game data directory
 5. **VS Code Extension** - syntax highlighting, autocomplete
 
 ## Recent (Completed - Commit 055690f)

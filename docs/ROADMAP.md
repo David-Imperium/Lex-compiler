@@ -66,7 +66,7 @@ Developer experience and direct engine integration.
    - Validation across layers
 
 2. **Direct Imperium Integration**
-   - Output to `C:\Imperium 2.0\data\`
+   - Output to game data directory
    - Hot-reload support for development
    - Source mapping for debugging
 
