@@ -19,6 +19,13 @@
 | CLI | Done | Multi-target support (`-t lua,json`) |
 | Tests | Active | 17+ test cases with Catch2 |
 
+### RFCs Published
+| RFC | Status | Description |
+|-----|--------|-------------|
+| `LEX_SHADER_RFC.md` | Draft | Shader DSL for GLSL/HLSL/MSL generation |
+| `LEX_AETHER_RFC.md` | Draft | Multi-agent AI context generation |
+| `AETHER_DEBUG_RFC.md` | Draft | Debug protocol for AI-assisted crash analysis |
+
 ### Latest Commit
 `055690f` - feat: Add JSON backend, CLI multi-target, and semantic validator
 
@@ -40,11 +47,6 @@ Enhanced developer experience and additional backends.
    - Markdown/structured text output
    - Companion AI integration
 
-3. **Layer System Design** (New Feature)
-   - Abstract/Concrete layer separation
-   - Namespace-based organization
-   - Cross-layer references
-
 ### Success Criteria
 ```bash
 # Multi-target output:
@@ -54,60 +56,134 @@ lexc game.lex -o output/ -t lua,json,react
 
 ---
 
-## Medium Term: v0.3.0 (Target: 2026-03-22)
+## Medium Term: v0.3.0 — Revolutionary Features (Target: 2026-03-22)
 
 ### Goals
-Developer experience and direct engine integration.
+Game-changing features that make Lex unique.
 
-### Features
-1. **Layer System** - Abstract/Concrete separation like Aether
-   - `namespace aether { }` for abstract definitions
-   - Cross-layer inheritance and references
-   - Validation across layers
+### Feature 1: Shader DSL
+**RFC:** `docs/LEX_SHADER_RFC.md`
 
-2. **Direct Imperium Integration**
-   - Output to game data directory
-   - Hot-reload support for development
-   - Source mapping for debugging
+Declarative shader definitions with multi-target compilation.
 
-3. **VS Code Extension**
-   - Syntax highlighting
-   - Autocomplete
-   - Go to definition
+```lex
+shader PBRMaterial {
+    name: "pbr_model"
+    targets: [glsl, hlsl, msl]
+    
+    uniforms: {
+        albedo: texture2D
+        metallic: float = 0.5
+        roughness: float = 0.5
+    }
+    
+    variants: {
+        low: { samples: 1, shadows: false }
+        high: { samples: 16, shadows: true, ssao: true }
+    }
+}
+```
+
+**Output:** GLSL, HLSL, MSL, C++ headers, documentation
+
+### Feature 2: Aether Extended
+**RFC:** `docs/LEX_AETHER_RFC.md`
+
+Multi-agent AI context generation from single source.
+
+```lex
+era Steampunk {
+    // Game data (existing)
+    name: "Steampunk Era"
+    
+    // Game AI context (new)
+    narrative: {
+        themes: ["progress", "pollution"]
+        mood: "industrial, tense"
+    }
+    
+    // Developer AI context (new)
+    developer: {
+        architecture_notes: "Era transition triggers shader switch"
+        dependencies: ["RenderGraph", "UIManager"]
+    }
+}
+```
+
+**Output:** 
+- Game runtime (Lua, JSON)
+- Game AI context (for Archivista)
+- Developer AI context (for Droid, Cursor, Claude)
+- Documentation (for humans)
+
+### Feature 3: Layer System
+Abstract/Concrete layer separation.
+
+```lex
+layer abstract {
+    unit Scout { ... }  // Concept definition
+}
+
+layer game {
+    unit Scout extends abstract.Scout {
+        // Concrete implementation
+        cost: { Gold: 50 }
+    }
+}
+```
+
+---
+
+## Long Term: v0.4.0+ (Target: 2026-04+)
+
+### Developer Experience
+- **VS Code Extension**
+  - Syntax highlighting
+  - Autocomplete
+  - Go to definition
+- **Language Server Protocol (LSP)**
+- **Hot Reload Integration**
+- **Live Preview** (for shaders)
+
+### Advanced Features
+- **Compute Shaders** (GPU compute)
+- **Ray Tracing Shaders** (VK_KHR_ray_tracing)
+- **Visual Shader Editor** (node-based)
 
 ### Integration
 - ModManager Imperium plugin
 - Build system hooks (CMake, Make)
-
----
-
-## Long Term: v0.3.0+ (Target: 2026-04+)
-
-### Developer Experience
-- VS Code extension
-  - Syntax highlighting
-  - Autocomplete
-  - Go to definition
-- Language Server Protocol (LSP)
-- User-friendly error messages
-- Debug mode with source mapping
-
-### Quality
-- Comprehensive test suite
-- Performance benchmarks
-- Documentation website
-- Tutorial and examples
+- CI/CD pipeline integration
 
 ---
 
 ## v1.0.0 Release Criteria
 
 - [ ] All 4 backends functional (Lua, JSON, React, Lore)
+- [ ] Shader DSL with multi-target compilation
+- [ ] Aether Extended for AI context
 - [ ] CLI stable and documented
 - [ ] 90%+ test coverage
 - [ ] Complete documentation
 - [ ] 3+ real mods built with Lex
 - [ ] Community feedback integrated
+
+---
+
+## Related Projects
+
+### Aether Debug Protocol
+**RFC:** `docs/AETHER_DEBUG_RFC.md`
+
+Separate project for AI-assisted crash analysis. Not part of Lex core, but integrates with Imperium 2.0.
+
+**Key Features:**
+- JSON crash output for agent consumption
+- Pattern-based crash analysis
+- Hypothesis generation with confidence scores
+- Integration with Droid/Cursor/Claude
+
+**Implementation:** Simplified version (watcher + JSON output) - 2-3 days
 
 ---
 
@@ -134,6 +210,14 @@ Developer experience and direct engine integration.
 ---
 
 ## Decision Log
+
+### 2026-03-02: RFC Trio Published
+**Decision:** Published 3 RFCs for revolutionary features (Shader DSL, Aether Extended, Debug Protocol)
+**Reason:** Document design before implementation, gather feedback
+
+### 2026-03-02: Simplified Debug Protocol
+**Decision:** Implement simplified Aether Debug (watcher + JSON) instead of full RFC
+**Reason:** 70% of value with 20% of effort, extensible later
 
 ### 2026-03-01: Separate v0.1.0 and v0.1.1
 **Decision:** Core (lexer, parser, AST, Lua) is v0.1.0. CLI + Validator is v0.1.1.

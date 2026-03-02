@@ -3,22 +3,49 @@ Updated: 2026-03-02
 
 ## Active
 - v0.2.0 MVP Complete (committed: 055690f)
-- Designing Layer System (aether-like abstraction)
+- RFCs published for revolutionary features
 
 ## Next (Priority Order)
-1. **Layer System Design** - namespace/abstract layer separation
+1. **Aether Debug Protocol** - Simplified crash analysis for AI agents
 2. **React/TypeScript Backend** - UI component generation
-3. **Lore Backend** - AI context for narrative systems
-4. **Direct Imperium Integration** - output to game data directory
-5. **VS Code Extension** - syntax highlighting, autocomplete
+3. **Shader DSL Implementation** - Based on LEX_SHADER_RFC.md
+4. **Aether Extended Implementation** - Based on LEX_AETHER_RFC.md
+5. **VS Code Extension** - Syntax highlighting, autocomplete
 
-## Recent (Completed - Commit 055690f)
-- [x] CLI Implementation - full argument parsing, multi-target support
-- [x] Validator Implementation - semantic analysis with errors/warnings
-- [x] JSON Backend - Imperium engine integration
-- [x] Parser Fix - `{}` resource map syntax support
-- [x] Parser Fix - string handling in reference lists
-- [x] Documentation updates (14 files, 1132 insertions)
+## Recent (Completed - Session 2026-03-02)
+- [x] ROADMAP.md updated with revolutionary features (v0.3.0+)
+- [x] STATE.md updated with real status
+- [x] RFC: LEX_SHADER_RFC.md - Shader DSL specification
+- [x] RFC: LEX_AETHER_RFC.md - Multi-agent AI context generation
+- [x] RFC: AETHER_DEBUG_RFC.md - Debug protocol for AI-assisted crash analysis
+- [x] GitHub preparation: README.md created, local paths removed
+- [x] Repository ready for publication
+
+## RFCs Published (2026-03-02)
+
+| RFC | Purpose | Implementation Priority |
+|-----|---------|------------------------|
+| `LEX_SHADER_RFC.md` | Declarative shaders → GLSL/HLSL/MSL | High (v0.3.0) |
+| `LEX_AETHER_RFC.md` | Multi-agent AI context | Medium (v0.3.0) |
+| `AETHER_DEBUG_RFC.md` | AI-assisted crash analysis | High (Imperium 2.0) |
+
+## Revolutionary Features Planned
+
+### 1. Shader DSL
+```
+shader PBRMaterial { ... } → GLSL + HLSL + MSL + C++ headers
+```
+
+### 2. Aether Extended
+```
+era Steampunk { narrative: {...}, developer: {...} }
+→ Game data + AI context + Documentation
+```
+
+### 3. Aether Debug Protocol
+```
+Crash → JSON → Agent Context → 1-3 iterations (instead of 10-20)
+```
 
 ## Component Status
 
@@ -44,6 +71,7 @@ Updated: 2026-03-02
 | Backends supportati | 2 (Lua, JSON) |
 | Definition types | 10 |
 | Keywords | 50+ |
+| RFCs pubblicati | 3 |
 
 ## Documentation Reminder
 **Dopo ogni fase grande (milestone), aggiornare:**
