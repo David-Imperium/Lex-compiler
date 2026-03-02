@@ -55,6 +55,7 @@ private:
     std::unique_ptr<Property> parse_property();
     std::unique_ptr<PropertyValue> parse_property_value();
     std::unique_ptr<PropertyValue> parse_bracket_value();
+    std::unique_ptr<PropertyValue> parse_brace_value();
     std::unique_ptr<ResourceMap> parse_resource_map_content();
     std::unique_ptr<ReferenceList> parse_reference_list_content();
 

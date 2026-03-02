@@ -9,8 +9,10 @@ add_executable(lexc
     src/main.cpp
     src/lexer/lexer.cpp
     src/parser/parser.cpp
+    src/parser/validator.cpp
     src/ast/ast.cpp
     src/codegen/lua_backend.cpp
+    src/codegen/json_backend.cpp
 )
 
 target_include_directories(lexc PRIVATE ${CMAKE_SOURCE_DIR}/src)

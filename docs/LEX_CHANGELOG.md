@@ -27,23 +27,60 @@ Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
-## Roadmap
-
-### [0.1.0] - Target: 2026-03-08 (1 settimana)
+## [0.1.0] - 2026-03-01 (COMPLETATO)
 
 **Obiettivo:** Transpiler Lex → Lua funzionante
 
-**Features:**
-- [ ] Lexer + Parser base
-- [ ] AST representation
-- [ ] Lua code generator
-- [ ] CLI tool (`lexc`)
-- [ ] Test con mod Imperium semplice
+### Added
+- **Lexer completo** (`src/lexer/`)
+  - Token types: literals, identifiers, keywords, operators, punctuation
+  - 50+ keywords supportate (core, conditional, property, logical)
+  - String escape sequences, hex colors, multiline strings
+  - Error accumulation con line/column tracking
+- **Parser completo** (`src/parser/`)
+  - Recursive descent parser
+  - 10 definition types: era, structure, unit, technology, resource, choice, ending, event, secret
+  - Property parsing: Expression, ResourceMap, ReferenceList
+  - Condition parsing: when, if, available_if, secret_if, active_if, bonus_if
+  - Error recovery per continuare dopo errori
+- **AST completo** (`src/ast/`)
+  - Base classes: ASTNode, ASTVisitor
+  - Expressions con type-safe variant
+  - Collections: ResourceMap, ReferenceList
+  - Properties e Conditions
+  - 10 concrete Definition types
+- **Lua Backend** (`src/codegen/`)
+  - BackendRegistry per extensibility
+  - Lua code generation da AST
+  - Resource map e reference list formatting
+- **Test Suite** (`tests/`)
+  - Catch2 framework configurato
+  - 17+ test cases (Lexer + Parser)
+  - Coverage: keywords, identifiers, literals, definitions, properties, conditions
+- **Documentazione**
+  - Specifiche linguistiche (`LEX_SPECIFICATION.md`)
+  - Architettura compilatore (`LEX_ARCHITECTURE.md`)
+  - Keywords reference (`LEX_KEYWORDS.md`)
+  - Esempi in `docs/examples/`
 
-**Documentazione:**
-- [ ] Specifiche linguistiche
-- [ ] Architettura compilatore
-- [ ] Esempi base
+### In Progress (per completare v0.1.0)
+- [ ] CLI tool (`lexc`) - main.cpp stub esiste
+- [ ] Semantic Validator - header definito, manca implementazione
+
+---
+
+## Roadmap
+
+### [0.1.1] - Target: 2026-03-08
+
+**Obiettivo:** Completare CLI e Validator
+
+**Features:**
+- [x] Lexer + Parser + AST (completato in 0.1.0)
+- [x] Lua code generator (completato in 0.1.0)
+- [ ] CLI tool (`lexc`) con argomenti
+- [ ] Semantic Validator (cross-reference, required props)
+- [ ] Integration test con file .lex reali
 
 ### [0.2.0] - Target: 2026-03-22 (3 settimane)
 
@@ -97,6 +134,15 @@ Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ---
 
 ## Note per Sviluppo
+
+### Documentazione Post-Milestone
+
+> **IMPORTANTE:** Dopo ogni milestone/fase grande, aggiornare SEMPRE:
+> - `CHANGELOG.md` - questo file (feature, fixes, breaking changes)
+> - `.planning/STATE.md` - stato attuale e prossimi task
+> - `LEX_ARCHITECTURE.md` - se cambiano componenti architetturali
+> - `LEX_SPECIFICATION.md` - se cambiano keywords o sintassi
+> - `ROADMAP.md` - progress e aggiornamenti roadmap
 
 ### Quando aggiornare questo file
 

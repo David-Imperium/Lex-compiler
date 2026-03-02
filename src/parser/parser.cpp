@@ -463,6 +463,9 @@ std::unique_ptr<PropertyValue> Parser::parse_property_value() {
     if (check(TokenType::LEFT_BRACKET)) {
         // Could be resource map [Gold x50, Wood x20] or reference list [TechA, TechB]
         return parse_bracket_value();
+    } else if (check(TokenType::LEFT_BRACE)) {
+        // Resource map with braces: { Gold: 50, Wood: 20 }
+        return parse_brace_value();
     } else {
         // Simple expression
         value->type = PropertyValue::Type::EXPRESSION;
@@ -516,6 +519,57 @@ std::unique_ptr<PropertyValue> Parser::parse_bracket_value() {
     return value;
 }
 
+std::unique_ptr<PropertyValue> Parser::parse_brace_value() {
+    auto value = std::make_unique<PropertyValue>();
+    value->type = PropertyValue::Type::RESOURCE_MAP;
+    
+    consume(TokenType::LEFT_BRACE, "Expected '{'");
+    
+    auto map = std::make_unique<ResourceMap>();
+    
+    // Parse: Resource: Quantity, Resource: Quantity, ...
+    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
+        if (!check(TokenType::IDENTIFIER)) {
+            error("Expected resource name");
+            pos_++;  // Skip bad token to avoid infinite loop
+            break;
+        }
+        
+        std::string resource = current().lexeme;
+        pos_++;
+        
+        // Expect colon
+        if (!check(TokenType::COLON)) {
+            error("Expected ':' after resource name");
+            pos_++;
+            break;
+        }
+        pos_++;  // Skip colon
+        
+        // Expect number
+        if (!check(TokenType::INTEGER)) {
+            error("Expected quantity after ':'");
+            pos_++;
+            break;
+        }
+        
+        int64_t quantity = std::get<int64_t>(current().value);
+        pos_++;
+        
+        map->resources[resource] = quantity;
+        
+        // Optional comma
+        if (check(TokenType::COMMA)) {
+            pos_++;
+        }
+    }
+    
+    consume(TokenType::RIGHT_BRACE, "Expected '}'");
+    
+    value->resource_map = std::move(map);
+    return value;
+}
+
 std::unique_ptr<ResourceMap> Parser::parse_resource_map_content() {
     auto map = std::make_unique<ResourceMap>();
     
@@ -561,15 +615,19 @@ std::unique_ptr<ResourceMap> Parser::parse_resource_map_content() {
 std::unique_ptr<ReferenceList> Parser::parse_reference_list_content() {
     auto list = std::make_unique<ReferenceList>();
     
-    // Parse: Reference, Reference, ...
+    // Parse: Reference, Reference, ... (identifiers or strings)
     while (!check(TokenType::RIGHT_BRACKET) && !check(TokenType::END_OF_FILE)) {
-        if (!check(TokenType::IDENTIFIER)) {
-            error("Expected reference name");
+        if (check(TokenType::IDENTIFIER)) {
+            list->references.push_back(current().lexeme);
+            pos_++;
+        } else if (check(TokenType::STRING)) {
+            list->references.push_back(std::get<std::string>(current().value));
+            pos_++;
+        } else {
+            error("Expected reference name or string");
+            pos_++;  // Skip bad token to avoid infinite loop
             break;
         }
-        
-        list->references.push_back(current().lexeme);
-        pos_++;
         
         // Optional comma
         if (check(TokenType::COMMA)) {
