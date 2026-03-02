@@ -4,23 +4,33 @@ Updated: 2026-03-02
 ## Current Version: v0.3.0
 
 ## Active
-- Lex Core compiler complete
+- Phase 1 COMPLETE: Core compiler done
 - 257 test assertions passing
 - Lua + JSON backends functional
-- Expression parser with operator precedence
 
-## Next Priority
-1. **React/TypeScript Backend** - UI type generation
-2. **Lore Backend** - AI narrative context
-3. **VS Code Extension** - Syntax highlighting
+## Next (Internal Priority)
+1. **Lex Core** — C++ backend for engine bindings
+2. **Lex Core** — Rust backend for editor
+3. **Lex Core** — sol2 integration
+4. (Public: React/TypeScript backend)
 
 ## Recent Commits
 | Commit | Description |
 |--------|-------------|
+| 121ad23 | docs: Reorganize documentation |
 | 11f9ef3 | docs: Mark Phase 1 complete |
 | ddcfbd7 | test: Add Lua validation |
 | 1206cdc | feat: Typed AST, Type Checker, Lua backend |
-| 1466c3f | feat: Pratt parser for expressions |
+
+## Phase Progress
+
+| Phase | Status | Notes |
+|-------|--------|-------|
+| Phase 1: Core | ✅ DONE | Compiler complete |
+| Phase 2: Lex Core | 🔜 NEXT | Engine bindings |
+| Phase 3: Lex Shader | 📋 Planned | Material system |
+| Phase 4: Lex Neural | 📋 Planned | Upscalers |
+| Phase 5: Aether | 📋 Planned | AI context |
 
 ## Component Status
 
@@ -36,19 +46,14 @@ Updated: 2026-03-02
 | CLI | ✅ | src/main.cpp |
 | Tests | ✅ | tests/ |
 
-## Backends
-| Backend | Status | Output |
-|---------|--------|--------|
-| Lua | ✅ Complete | Gameplay logic |
-| JSON | ✅ Complete | Data definitions |
-| React | ❌ Planned | TypeScript interfaces |
-| Lore | ❌ Planned | AI context |
+## Engine Problems Solved by Lex
 
-## Metrics
-- Source lines: ~15K
-- Test assertions: 257
-- Definition types: 10
-- Keywords: 50+
+| Problem | Solution | Phase |
+|---------|----------|-------|
+| Manual C++ bindings | Auto-generate from Lex | 2 |
+| Shader cross-platform | Multi-target compilation | 3 |
+| Upscaler fragmentation | Single API abstraction | 4 |
+| AI lacks game context | Auto context generation | 5 |
 
 ## Build Commands
 ```bash
@@ -62,3 +67,7 @@ cmake --build build --config Release
 .\build\tests\Debug\lexer_tests.exe
 python tests/lua_validator.py build/output/imperium_minimal.lua
 ```
+
+## Documents
+- **Public:** docs/ROADMAP.md (simplified)
+- **Internal:** .planning/INTERNAL_ROADMAP.md (full vision)
