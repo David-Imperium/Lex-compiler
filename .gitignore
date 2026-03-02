@@ -49,3 +49,4 @@ output/
 # Internal (not for public release)
 .planning/INTERNAL_ROADMAP.md
 .crush/
+.factory/
