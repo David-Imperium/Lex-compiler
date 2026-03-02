@@ -1,6 +1,17 @@
 cmake_minimum_required(VERSION 3.20)
 
-find_package(Catch2 3 REQUIRED)
+# Fetch Catch2 if not found via vcpkg
+find_package(Catch2 3 QUIET)
+if(NOT Catch2_FOUND)
+    message(STATUS "Catch2 not found, fetching from GitHub...")
+    include(FetchContent)
+    FetchContent_Declare(
+        Catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG v3.5.3
+    )
+    FetchContent_MakeAvailable(Catch2)
+endif()
 
 add_executable(lexer_tests
     test_main.cpp

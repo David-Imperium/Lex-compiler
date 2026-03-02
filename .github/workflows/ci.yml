@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [master]
 
-env:
-  VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -16,13 +13,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup vcpkg
-      uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgGitCommitId: "a34c873a9717a888f58dc05268dea15592c2f0ff"
-
     - name: Configure CMake
-      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
+      run: cmake -B build -S .
 
     - name: Build
       run: cmake --build build --config Release
@@ -39,24 +31,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install system dependencies
+    - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake g++ pkg-config
-
-    - name: Setup vcpkg
-      uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgGitCommitId: "a34c873a9717a888f58dc05268dea15592c2f0ff"
+        sudo apt-get install -y cmake g++
 
     - name: Configure CMake
-      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
+      run: cmake -B build -S .
 
     - name: Build
-      run: cmake --build build --config Release
+      run: cmake --build build --config Release -j$(nproc)
 
     - name: Run tests
-      run: ./build/tests/Release/lexer_tests
+      run: ./build/tests/lexer_tests
 
   build-macos:
     runs-on: macos-latest
@@ -64,16 +51,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup vcpkg
-      uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgGitCommitId: "a34c873a9717a888f58dc05268dea15592c2f0ff"
-
     - name: Configure CMake
-      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
+      run: cmake -B build -S .
 
     - name: Build
-      run: cmake --build build --config Release
+      run: cmake --build build --config Release -j$(sysctl -n hw.ncpu)
 
     - name: Run tests
-      run: ./build/tests/Release/lexer_tests
+      run: ./build/tests/lexer_tests
