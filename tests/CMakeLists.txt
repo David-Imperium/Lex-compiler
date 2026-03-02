@@ -7,6 +7,7 @@ add_executable(lexer_tests
     ${CMAKE_SOURCE_DIR}/src/lexer/lexer.cpp
     ${CMAKE_SOURCE_DIR}/src/parser/parser.cpp
     ${CMAKE_SOURCE_DIR}/src/ast/ast.cpp
+    ${CMAKE_SOURCE_DIR}/src/semantic/type_checker.cpp
 )
 
 target_include_directories(lexer_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)

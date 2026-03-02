@@ -11,6 +11,7 @@ add_executable(lexc
     src/parser/parser.cpp
     src/parser/validator.cpp
     src/ast/ast.cpp
+    src/semantic/type_checker.cpp
     src/codegen/lua_backend.cpp
     src/codegen/json_backend.cpp
 )

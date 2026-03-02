@@ -6,8 +6,28 @@
 #include <map>
 #include <variant>
 #include <cstdint>
+#include <optional>
 
 namespace lex {
+
+// ============================================================================
+// Type System
+// ============================================================================
+
+enum class LexType {
+    UNKNOWN,        // Type not yet inferred
+    INTEGER,        // int64_t
+    FLOAT,          // double
+    STRING,         // std::string
+    BOOLEAN,        // bool
+    REFERENCE,      // Reference to another definition (e.g., era name)
+    RESOURCE_MAP,   // { Gold: 50, Wood: 20 }
+    REFERENCE_LIST, // [TechA, TechB]
+    COLOR,          // #RRGGBB
+    VOID            // No type (for statements)
+};
+
+std::string type_to_string(LexType type);
 
 // ============================================================================
 // Base Classes
@@ -46,6 +66,7 @@ public:
     enum class UnaryOp { NOT, NEG };       // Logical: not, Arithmetic: -
 
     Type type = Type::NULL_VAL;
+    LexType inferred_type = LexType::UNKNOWN;  // Type inference result
 
     // For literals and references
     std::variant<int64_t, double, std::string, bool> value;
@@ -67,6 +88,9 @@ public:
     // For member expressions (type == MEMBER)
     std::unique_ptr<Expression> object;
     std::string member_name;
+
+    // Type inference
+    LexType infer_type() const;
 
     // Convenience factory methods
     static std::unique_ptr<Expression> make_integer(int64_t val);
@@ -141,6 +165,18 @@ public:
     std::string definition_type;  // "era", "structure", "unit", etc.
     std::vector<std::unique_ptr<Property>> properties;
     std::vector<std::unique_ptr<Condition>> conditions;
+
+    // Typed property accessors
+    std::optional<int64_t> get_int_property(const std::string& name) const;
+    std::optional<double> get_float_property(const std::string& name) const;
+    std::optional<std::string> get_string_property(const std::string& name) const;
+    std::optional<bool> get_bool_property(const std::string& name) const;
+    const ResourceMap* get_resource_map_property(const std::string& name) const;
+    const ReferenceList* get_reference_list_property(const std::string& name) const;
+    const Expression* get_expression_property(const std::string& name) const;
+
+    // Property existence check
+    bool has_property(const std::string& name) const;
 };
 
 // ============================================================================
