@@ -1,7 +1,7 @@
 # Lex Compiler Architecture
 
-**Version:** 0.1.0
-**Last Updated:** 2026-03-01
+**Version:** 0.3.0
+**Last Updated:** 2026-03-02
 **Status:** Draft
 
 ---
@@ -10,35 +10,71 @@
 
 Lex is a **multi-target transpiler** that compiles `.lex` source files to multiple output formats.
 
-### 1.1 Compilation Pipeline
+### 1.1 Layer System
+
+Lex è diviso in layer con accesso e complessità crescente. Ogni layer è un superset del precedente.
 
 ```
-.lex Source
+┌─────────────────────────────────────────────────────┐
+│                    Aether                           │
+│           (solo agenti AI, invisibile)              │
+├─────────────────────────────────────────────────────┤
+│                  Lex Neural                         │
+│         (GPU compute, DLSS/XeSS/FSR)                │
+├─────────────────────────────────────────────────────┤
+│                  Lex Shader                         │
+│      (interfaccia dichiarativa al RenderGraph)      │
+├─────────────────────────────────────────────────────┤
+│                  Lex Core                           │
+│     (sviluppatore, engine C++, editor Rust)         │
+├─────────────────────────────────────────────────────┤
+│                  Lex Base                           │
+│          (modder, dichiarativo, sicuro)             │
+└─────────────────────────────────────────────────────┘
+```
+
+**Lex Base** — modder community, target: Lua, JSON, React
+**Lex Core** — sviluppatore, target: C++, Rust, Lua avanzato
+**Lex Shader** — graphics, target: GLSL/SPIR-V, RenderGraph API
+**Lex Neural** — GPU compute, target: C++ con backend multipli
+**Aether** — agenti AI, generato automaticamente
+
+### 1.2 Compilation Pipeline
+
+```
+file.lex
     │
     ▼
 ┌─────────┐
-│  Lexer  │ ──► Token Stream
+│  Lexer  │ → Token Stream
 └─────────┘
     │
     ▼
 ┌──────────┐
-│  Parser  │ ──► Abstract Syntax Tree (AST)
+│  Parser  │ → AST
 └──────────┘
     │
     ▼
-┌───────────┐
-│ Validator │ ──► Semantic Analysis
-└───────────┘
+┌───────────────┐
+│  Type Checker │ → AST tipizzato e validato
+└───────────────┘
     │
     ▼
-┌────────────────────────────────────────────┐
-│           Code Generation Backends          │
-├──────────┬─────────┬─────────┬────────────┤
-│   Lua    │  JSON   │  React  │    Lore    │
-└──────────┴─────────┴─────────┴────────────┘
+┌─────────────────────────────────────────────────────┐
+│                  Code Generation                    │
+├──────────┬──────────┬──────────┬──────────┬────────┤
+│   Lua    │   JSON   │   C++    │   Rust   │ Python │
+│  (Base)  │  (Base)  │  (Core)  │  (Core)  │(Aether)│
+└──────────┴──────────┴──────────┴──────────┴────────┘
+    │                      │
+    ▼                      ▼
+┌──────────┐         ┌──────────────┐
+│ React/TS │         │ GLSL/SPIR-V  │
+│  (Base)  │         │  (Shader)    │
+└──────────┘         └──────────────┘
 ```
 
-### 1.2 Design Principles
+### 1.3 Design Principles
 
 1. **Separation of Concerns**: Each pipeline stage is independent
 2. **Visitor Pattern**: AST traversal uses visitors for flexibility

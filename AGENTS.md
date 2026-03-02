@@ -334,5 +334,26 @@ inline const std::map<std::string, TokenType> KEYWORDS = {
 
 ---
 
-**Version:** 0.1.0
-**Last Updated:** 2026-03-01
+## Regole per lo Sviluppo con Agenti AI
+
+Lavorare con agenti AI su un compilatore ha insidie specifiche.
+
+### Regola 1 — Un problema alla volta
+Dare all'agente obiettivi piccoli e verificabili. Non "implementa l'expression parser" ma "implementa il parsing di `a > b` con il test corrispondente."
+
+### Regola 2 — Test prima di procedere
+Ogni modifica deve compilare e passare i test esistenti. Gli agenti tendono ad accumulare debito — funziona la feature nuova ma si rompe quella vecchia.
+
+### Regola 3 — Contesto obbligatorio
+Prima di ogni sessione, l'agente deve leggere `AGENTS.md` e documentazione rilevante. Senza contesto genera codice plausibile ma non coerente con l'architettura esistente.
+
+### Regola 4 — Criteri di successo espliciti
+Ogni task deve avere un criterio verificabile. Esempio: "dopo questa modifica, `lexc examples/basic_structure.lex -t lua` deve girare senza errori e produrre output valido."
+
+### Regola 5 — Non documentare il futuro
+Aggiornare la documentazione solo dopo che il codice funziona, non prima.
+
+---
+
+**Version:** 0.3.0
+**Last Updated:** 2026-03-02
