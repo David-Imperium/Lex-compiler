@@ -5,327 +5,75 @@
 
 ---
 
-## Current Status: v0.2.1 (Core Solido Complete)
+## Current Status: v0.3.0 (Core Complete)
 
-### Completed
+### Completed Components
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Lexer | Done | 50+ keywords, full literal support |
-| Parser | Done | 10 definition types, conditions, error recovery, `{}` resource maps |
-| Expression Parser | Done | Pratt parser with operator precedence |
-| AST | Done | Type-safe, visitor pattern, LexType enum, typed accessors |
-| Type Checker | Done | Semantic type validation in src/semantic/ |
-| Validator | Done | Semantic analysis with errors/warnings separation |
-| Lua Backend | Done | Full expression/condition code generation |
-| JSON Backend | Done | Imperium engine integration |
-| CLI | Done | Multi-target support (`-t lua,json`) |
-| Tests | Active | 257 assertions in 23 test cases with Catch2 |
-
-### RFCs Published
-| RFC | Status | Description |
-|-----|--------|-------------|
-| `LEX_SHADER_RFC.md` | Draft | Shader DSL for GLSL/HLSL/MSL generation |
-| `LEX_AETHER_RFC.md` | Draft | Multi-agent AI context generation |
-| `AETHER_DEBUG_RFC.md` | Draft | Debug protocol for AI-assisted crash analysis |
-
-### Latest Commit
-`055690f` - feat: Add JSON backend, CLI multi-target, and semantic validator
+| Lexer | ✅ Done | 50+ keywords, full literal support |
+| Parser | ✅ Done | 10 definition types, conditions, error recovery |
+| Expression Parser | ✅ Done | Pratt parser with operator precedence |
+| AST | ✅ Done | Type-safe, visitor pattern, typed accessors |
+| Type Checker | ✅ Done | Semantic type validation |
+| Validator | ✅ Done | Errors/warnings separation |
+| Lua Backend | ✅ Done | Full expression/condition generation |
+| JSON Backend | ✅ Done | Imperium engine integration |
+| CLI | ✅ Done | Multi-target support (`-t lua,json`) |
+| Tests | ✅ Active | 257 assertions in 23 test cases |
 
 ---
 
-## Problemi Critici del Core — RISOLTI
+## Next: v0.3.1 (Short Term)
 
-### ~~Expression Parser (Priorità Critica)~~ — DONE (1466c3f)
-Implementato Pratt parser con precedenza operatori:
-- Confronti: `>`, `<`, `>=`, `<=`, `==`, `!=`
-- Logica: `and`, `or`, `not`
-- Aritmetica: `+`, `-`, `*`, `/`
-- Riferimenti: `civilization.population`, `city.happiness`
-- Chiamate: `has_technology(SteamEngine)`
+### React/TypeScript Backend
+Generate TypeScript interfaces from definitions for UI consumption.
 
-### ~~AST Tipizzato (Priorità Alta)~~ — DONE (1206cdc)
-Aggiunto `LexType` enum, `Expression::infer_type()`, `Definition` typed accessors.
-
-### ~~Type Checker (Priorità Alta)~~ — DONE (1206cdc)
-Creato `src/semantic/type_checker.cpp` con validazione operatori e tipi.
-
-### ~~Lua Backend Completo (Priorità Media)~~ — DONE (1206cdc)
-Backend ora genera codice per tutte le definizioni, espressioni e condizioni.
-
----
-
-## Piano di Sviluppo
-
-### Fase 1 — Core Solido — COMPLETATA
-1. ~~Expression parser con precedenza operatori e test~~ — DONE (1466c3f)
-2. ~~AST tipizzato per i tipi base (structure, unit, technology, era)~~ — DONE (1206cdc)
-3. ~~Type checker base~~ — DONE (1206cdc)
-4. ~~Lua backend completo con generazione da condizioni reali~~ — DONE (1206cdc)
-5. ~~Test end-to-end su un mod Imperium reale~~ — DONE (ddcfbd7) — Simulatore Python valida output Lua
-
-**Criterio di successo:** un modder può scrivere un file `.lex` con condizioni e ottenere Lua che gira in Imperium.
-
-### Fase 2 — Lex Core
-1. Definizione formale della sintassi Core (superset di Base)
-2. Backend C++ — generazione di bindings engine
-3. Backend Rust — interfacce editor
-4. Sistema di tipi avanzato (variabili, espressioni, funzioni)
-5. Integrazione con sol2 per esposizione al layer Lua
-
-**Criterio di successo:** puoi definire un sistema di gioco in Lex Core e l'engine lo carica senza scrivere C++ a mano.
-
-### Fase 3 — Lex Shader
-1. Definizione sintassi Shader (material, pass, parameters)
-2. Backend RenderGraph — genera chiamate API al rendergraph esistente
-3. Backend GLSL — genera shader code da definizioni dichiarative
-4. Sistema LOD dichiarativo
-5. Integrazione con il pipeline Vulkan
-
-**Criterio di successo:** puoi definire un materiale in Lex Shader e vederlo renderizzato in Imperium.
-
-### Fase 4 — Lex Neural
-1. Design API C++ Neural (pensato per Lex fin dall'inizio)
-2. Implementazione backend Nvidia DLSS
-3. Implementazione backend Intel XeSS
-4. Implementazione backend AMD FSR
-5. Sistema di fallback automatico
-6. Backend Lex Neural — genera codice C++ con selezione runtime
-7. Integrazione con il RenderGraph per input/output buffer
-
-**Criterio di successo:** scrivi `neural Upscaler { mode: quality }` e funziona su qualsiasi GPU supportata, con fallback su hardware legacy.
-
-### Fase 5 — Aether
-1. Generazione automatica contesto Aether dal compilatore Lex
-2. Bridge Python per Archivista (Ollama locale)
-3. Bridge Python per God AI (monitoring e report)
-4. Sistema di memoria selettiva per Archivista
-5. Sistema di visione opzionale
-6. Report engine per God AI
-
-**Criterio di successo:** l'Archivista reagisce alle scelte del giocatore con contesto reale della partita. God AI genera report leggibili sulle sessioni.
-
----
-
-## Short Term: v0.2.1 (Target: 2026-03-09)
-
-### Goals
-Enhanced developer experience and additional backends.
-
-### Tasks
-1. **React/TypeScript Backend** (`src/codegen/react_backend.cpp`)
-   - Generate TypeScript interfaces from definitions
-   - React component props for UI panels
-   - Type-safe game data consumption
-
-2. **Lore Backend** (`src/codegen/lore_backend.cpp`)
-   - AI context generation for narrative systems
-   - Markdown/structured text output
-   - Companion AI integration
-
-### Success Criteria
 ```bash
-# Multi-target output:
 lexc game.lex -o output/ -t lua,json,react
-# Produces: output/*.lua, output/*.json, output/*.ts
+# Produces: *.lua, *.json, *.ts
 ```
+
+**Tasks:**
+- [ ] TypeScript interface generator
+- [ ] React component props generation
+- [ ] Type-safe game data hooks
+
+### Lore Backend
+Generate AI context for narrative systems.
+
+**Tasks:**
+- [ ] Markdown output format
+- [ ] Structured text for companion AI
 
 ---
 
-## Medium Term: v0.3.0 — Revolutionary Features (Target: 2026-03-22)
+## Future: v0.4.0+ (Planned)
 
-### Goals
-Game-changing features that make Lex unique.
-
-### Feature 1: Shader DSL
-**RFC:** `docs/LEX_SHADER_RFC.md`
-
-Declarative shader definitions with multi-target compilation.
-
-```lex
-shader PBRMaterial {
-    name: "pbr_model"
-    targets: [glsl, hlsl, msl]
-    
-    uniforms: {
-        albedo: texture2D
-        metallic: float = 0.5
-        roughness: float = 0.5
-    }
-    
-    variants: {
-        low: { samples: 1, shadows: false }
-        high: { samples: 16, shadows: true, ssao: true }
-    }
-}
-```
-
-**Output:** GLSL, HLSL, MSL, C++ headers, documentation
-
-### Feature 2: Aether Extended
-**RFC:** `docs/LEX_AETHER_RFC.md`
-
-Multi-agent AI context generation from single source.
-
-```lex
-era Steampunk {
-    // Game data (existing)
-    name: "Steampunk Era"
-    
-    // Game AI context (new)
-    narrative: {
-        themes: ["progress", "pollution"]
-        mood: "industrial, tense"
-    }
-    
-    // Developer AI context (new)
-    developer: {
-        architecture_notes: "Era transition triggers shader switch"
-        dependencies: ["RenderGraph", "UIManager"]
-    }
-}
-```
-
-**Output:** 
-- Game runtime (Lua, JSON)
-- Game AI context (for Archivista)
-- Developer AI context (for Droid, Cursor, Claude)
-- Documentation (for humans)
-
-### Feature 3: Layer System
-Abstract/Concrete layer separation.
-
-```lex
-layer abstract {
-    unit Scout { ... }  // Concept definition
-}
-
-layer game {
-    unit Scout extends abstract.Scout {
-        // Concrete implementation
-        cost: { Gold: 50 }
-    }
-}
-```
-
----
-
-## Long Term: v0.4.0+ (Target: 2026-04+)
-
-### Developer Experience
-- **VS Code Extension**
-  - Syntax highlighting
-  - Autocomplete
-  - Go to definition
-- **Language Server Protocol (LSP)**
-- **Hot Reload Integration**
-- **Live Preview** (for shaders)
-
-### Advanced Features
-- **Compute Shaders** (GPU compute)
-- **Ray Tracing Shaders** (VK_KHR_ray_tracing)
-- **Visual Shader Editor** (node-based)
-
-### Integration
-- ModManager Imperium plugin
-- Build system hooks (CMake, Make)
-- CI/CD pipeline integration
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| VS Code Extension | Syntax highlighting, autocomplete | Medium |
+| Layer System | Abstract/Concrete separation | Low |
+| C++ Backend | Engine bindings generation | Low |
+| Rust Backend | Editor interfaces | Low |
 
 ---
 
 ## v1.0.0 Release Criteria
 
-- [ ] All 4 backends functional (Lua, JSON, React, Lore)
-- [ ] Shader DSL with multi-target compilation
-- [ ] Aether Extended for AI context
+- [ ] 4 backends functional (Lua, JSON, React, Lore)
 - [ ] CLI stable and documented
 - [ ] 90%+ test coverage
 - [ ] Complete documentation
 - [ ] 3+ real mods built with Lex
-- [ ] Community feedback integrated
-
----
-
-## Confine Base / Core
-
-| Feature | Base | Core |
-|---------|------|------|
-| Strutture, unità, ere, tecnologie | ✅ | ✅ |
-| Condizioni semplici | ✅ | ✅ |
-| Espressioni aritmetiche | ❌ | ✅ |
-| Variabili e stato | ❌ | ✅ |
-| Accesso API engine C++ | ❌ | ✅ |
-| Definizione sistemi di gioco | ❌ | ✅ |
-| Shader e materiali | ❌ | Shader |
-| Neural backends | ❌ | Neural |
-| Contesto agenti AI | automatico | automatico |
-
----
-
-## Related Projects
-
-### Aether Debug Protocol
-**RFC:** `docs/AETHER_DEBUG_RFC.md`
-
-Separate project for AI-assisted crash analysis. Not part of Lex core, but integrates with Imperium 2.0.
-
-**Key Features:**
-- JSON crash output for agent consumption
-- Pattern-based crash analysis
-- Hypothesis generation with confidence scores
-- Integration with Droid/Cursor/Claude
-
-**Implementation:** Simplified version (watcher + JSON output) - 2-3 days
-
----
-
-## Documentation Maintenance
-
-> **IMPORTANTE:** Dopo ogni milestone completata, aggiornare:
-> - `CHANGELOG.md` - feature completate, breaking changes
-> - `STATE.md` - stato attuale, prossimi task
-> - `LEX_ARCHITECTURE.md` - nuovi componenti
-> - `LEX_SPECIFICATION.md` - nuove keywords/sintassi
-> - `ROADMAP.md` - questo file
-
----
-
-## Risk Mitigation
-
-| Risk | Mitigation | Status |
-|------|------------|--------|
-| Scope creep | Strict MVP definition | Active |
-| Complex syntax | Iteration with real modders | Planned |
-| Poor error messages | Dedicated error formatting phase | Future |
-| Performance | Incremental compilation | Future |
 
 ---
 
 ## Decision Log
 
-### 2026-03-02: Phase 1 Core Solido Complete
-**Decision:** Completati tutti gli item della Phase 1 tranne test end-to-end
-**Commits:**
-- 1466c3f: Pratt parser for expressions with operator precedence
-- 1206cdc: Typed AST (LexType enum), Type Checker, complete Lua backend
-**Result:** 257 test assertions passing, core compiler feature-complete
+### 2026-03-02: Phase 1 Complete
+**Commits:** 1466c3f, 1206cdc, ddcfbd7
+**Result:** Core compiler feature-complete with 257 test assertions passing
 
-### 2026-03-02: Master Design Integration
-**Decision:** Integrato LEX_MASTER_DESIGN.md nei documenti esistenti
-**Reason:** Evitare duplicazione e mantenere singola source of truth
-**Changes:** Vision, Architecture, Roadmap aggiornati con contenuti del Master Design
-
-### 2026-03-02: RFC Trio Published
-**Decision:** Published 3 RFCs for revolutionary features (Shader DSL, Aether Extended, Debug Protocol)
-**Reason:** Document design before implementation, gather feedback
-
-### 2026-03-02: Simplified Debug Protocol
-**Decision:** Implement simplified Aether Debug (watcher + JSON) instead of full RFC
-**Reason:** 70% of value with 20% of effort, extensible later
-
-### 2026-03-01: Separate v0.1.0 and v0.1.1
-**Decision:** Core (lexer, parser, AST, Lua) is v0.1.0. CLI + Validator is v0.1.1.
-**Reason:** Core is complete and tested. CLI/Validator are distinct deliverables.
-
-### 2026-03-01: Validator Not Required for v0.1.0
-**Decision:** v0.1.0 is "feature complete" for core transpilation.
-**Reason:** Validator is enhancement, not blocker for basic functionality.
+### 2026-03-02: Roadmap Simplified
+**Decision:** Removed speculative features (Shader DSL, Neural, Aether Extended)
+**Reason:** Focus on concrete, deliverable features first

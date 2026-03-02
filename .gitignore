@@ -1,9 +1,10 @@
-# Build directories
+# Build
 build/
 cmake-build-*/
 out/
+Testing/
 
-# Compiled files
+# Compiled
 *.exe
 *.obj
 *.o
@@ -13,31 +14,34 @@ out/
 *.so
 *.dylib
 
-# IDE and editor
+# IDE
 .vscode/
 .idea/
 *.suo
 *.user
-*.sln.docstates
+*.sln
+*.vcxproj*
 
 # CMake
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 Makefile
+CTestTestfile.cmake
 
-# vcpkg
+# Dependencies
 vcpkg_installed/
 
 # OS
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Temp
 *.tmp
 *.temp
 *.log
-
-# Build artifacts
-Testing/
 nul
+
+# Output
+output/
