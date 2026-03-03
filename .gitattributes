@@ -1,0 +1,11 @@
+# Lex language files
+# Note: "Lex" is not yet recognized by linguist
+# Using "Custom" as placeholder until we contribute to linguist
+*.lex linguist-language=INI
+
+# VS Code extension counts as code
+editors/vscode/* linguist-vendored=false
+
+# Generated output should not count
+examples/*.lua linguist-generated
+examples/*.json linguist-generated
