@@ -25,11 +25,13 @@ private:
     std::string type_to_table_name(const std::string& type) const;
 
     // Expression code generation
-    std::string generate_expression(const Expression* expr);
-    std::string generate_binary_expression(const Expression* expr);
-    std::string generate_unary_expression(const Expression* expr);
-    std::string generate_call_expression(const Expression* expr);
-    std::string generate_member_expression(const Expression* expr);
+    // in_condition: true when inside condition functions (use game_state.X)
+    //               false for property values (use "X" string)
+    std::string generate_expression(const Expression* expr, bool in_condition = false);
+    std::string generate_binary_expression(const Expression* expr, bool in_condition = false);
+    std::string generate_unary_expression(const Expression* expr, bool in_condition = false);
+    std::string generate_call_expression(const Expression* expr, bool in_condition = false);
+    std::string generate_member_expression(const Expression* expr, bool in_condition = false);
 
     // Condition code generation
     std::string generate_condition(const Condition* cond);
