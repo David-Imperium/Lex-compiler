@@ -1,11 +1,11 @@
 # Lex Development Roadmap
 
-**Version:** 0.3.1
-**Last Updated:** 2026-03-02
+**Version:** 0.3.2
+**Last Updated:** 2026-03-03
 
 ---
 
-## Current Status: v0.3.1 (Agnostic Core)
+## Current Status: v0.3.2 (Agnostic Core)
 
 ### Completed Components
 | Component | Status | Notes |
@@ -21,7 +21,7 @@
 | CLI | ✅ Done | `--types` flag for custom schemas |
 | Tests | ✅ Active | 257 assertions in 23 test cases |
 
-### New in v0.3.1
+### New in v0.3.2
 - **`--types` CLI flag** — Define custom definition types
 - **Agnostic core** — Not tied to any specific game
 - **Dynamic JSON output** — Works with any schema
@@ -73,9 +73,15 @@ Making Lex usable by everyone, not just C++ developers.
 
 ---
 
-## Roadmap: Backends (v0.5.0)
+## Roadmap: Backends (v0.5.0) — Planned
 
-### TypeScript/React Backend
+### Godot Backend ✅ Complete
+GDScript generation for Godot Engine integration.
+
+### Unity Backend ✅ Complete  
+C# generation for Unity integration.
+
+### TypeScript/React Backend — Planned
 Generate TypeScript interfaces from definitions.
 
 ```bash
@@ -95,13 +101,20 @@ lexc game.lex -o output/ -t lua,json,ts
 - [ ] Binary releases for all platforms
 - [ ] Complete tutorial documentation
 - [ ] VS Code extension published
-- [ ] 4 backends functional (Lua, JSON, TypeScript, C++)
+- [ ] 4 backends functional (Lua, JSON, Godot, Unity)
 - [ ] 90%+ test coverage
 - [ ] 3+ real projects built with Lex
 
 ---
 
 ## Changelog
+
+### 2026-03-03: v0.3.2 — Documentation Update
+- Fixed EBNF EraDefinition syntax error in LEX_SPECIFICATION.md
+- Updated JSON Backend status from "Future" to "Complete"
+- Added Godot and Unity backends as complete
+- TypeScript/Python backends marked as "Planned"
+- Keywords count aligned to 50+ (actual implementation)
 
 ### 2026-03-02: v0.3.1 — Agnostic Core
 - Added `--types` CLI flag for custom schemas

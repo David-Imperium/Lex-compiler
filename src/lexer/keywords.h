@@ -14,6 +14,7 @@ inline const std::map<std::string, TokenType> KEYWORDS = {
     {"technology", TokenType::TECHNOLOGY},
     {"resource", TokenType::RESOURCE},
     {"era", TokenType::ERA},
+    {"terrain", TokenType::TERRAIN},
 
     // Narrative
     {"choice", TokenType::CHOICE},

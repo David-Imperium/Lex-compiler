@@ -1,8 +1,8 @@
 # Lex Compiler Architecture
 
-**Version:** 0.3.0
-**Last Updated:** 2026-03-02
-**Status:** Draft
+**Version:** 0.3.2
+**Last Updated:** 2026-03-03
+**Status:** Active Development
 
 ---
 
@@ -205,7 +205,7 @@ struct Token {
 };
 ```
 
-### 2.2 Keyword Table (~80 entries)
+### 2.2 Keyword Table (50+ entries)
 
 ```cpp
 // lexer/keywords.h
@@ -960,9 +960,9 @@ function Buildings.SteamFactory:isAvailable(civilization)
 end
 ```
 
-### 5.3 JSON Backend (Future)
+### 5.3 JSON Backend ✅ Complete
 
-Generates JSON data files for frontend consumption.
+Generates JSON data files for frontend consumption. Fully implemented with dynamic output for any definition type.
 
 ```cpp
 class JSONBackend : public Backend {

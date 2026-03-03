@@ -1,25 +1,25 @@
-# Lex Tutorial: Your First Mod
+# Tutorial Lex: Il Tuo Primo Mod
 
-This tutorial walks you through creating a simple game mod using Lex.
+Questo tutorial ti guida nella creazione di una mod semplice per un gioco usando Lex.
 
-## Prerequisites
+## Prerequisiti
 
-- Lex compiler installed (or built from source)
-- A text editor
-- Basic understanding of game content (items, characters, etc.)
+- Compilatore Lex installato (o compilato da sorgente)
+- Un editor di testo
+- Conoscenza base dei contenuti di gioco (oggetti, personaggi, ecc.)
 
-## Step 1: Install Lex
+## Passo 1: Installare Lex
 
-### Option A: Download Binary (Recommended)
+### Opzione A: Scaricare il Binario (Consigliato)
 
-Download the latest release for your platform:
+Scarica l'ultima release per la tua piattaforma:
 - Windows: `lexc-windows-x64.zip`
 - Linux: `lexc-linux-x64.tar.gz`
 - macOS: `lexc-macos-x64.tar.gz`
 
-Extract and add to your PATH.
+Estrai e aggiungi al tuo PATH.
 
-### Option B: Build from Source
+### Opzione B: Compilare da Sorgente
 
 ```bash
 git clone https://github.com/David-Imperium/Lex-compiler.git
@@ -28,11 +28,11 @@ cmake -B build -S .
 cmake --build build --config Release
 ```
 
-The executable is at `build/Release/lexc` (or `build\Release\lexc.exe` on Windows).
+L'eseguibile si trova in `build/Release/lexc` (o `build\Release\lexc.exe` su Windows).
 
-## Step 2: Create Your First Definition
+## Passo 2: Creare la Tua Prima Definizione
 
-Create a file called `mymod.lex`:
+Crea un file chiamato `mymod.lex`:
 
 ```lex
 item HealthPotion {
@@ -65,19 +65,19 @@ character Dragon {
 }
 ```
 
-## Step 3: Compile
+## Passo 3: Compilare
 
 ```bash
 lexc mymod.lex --types item,character -t lua,json
 ```
 
-This tells Lex:
-- `--types item,character` — We're using custom types "item" and "character"
-- `-t lua,json` — Generate both Lua and JSON output
+Questo indica a Lex:
+- `--types item,character` — Stiamo usando i tipi personalizzati "item" e "character"
+- `-t lua,json` — Genera sia output Lua che JSON
 
-## Step 4: Check the Output
+## Passo 4: Verificare l'Output
 
-### JSON Output (`mymod.json`)
+### Output JSON (`mymod.json`)
 
 ```json
 {
@@ -123,9 +123,9 @@ This tells Lex:
 }
 ```
 
-## Step 5: Using Conditions
+## Passo 5: Usare le Condizioni
 
-Lex supports conditional blocks:
+Lex supporta blocchi condizionali:
 
 ```lex
 item FrostSword {
@@ -142,9 +142,9 @@ item FrostSword {
 }
 ```
 
-## Step 6: Resource Maps
+## Passo 6: Mappe di Risorse
 
-For costs, production, etc.:
+Per costi, produzione, ecc.:
 
 ```lex
 structure Blacksmith {
@@ -162,20 +162,20 @@ structure Blacksmith {
 }
 ```
 
-## Using with Your Game
+## Integrazione con il Tuo Gioco
 
-### Lua Integration
+### Integrazione Lua
 
 ```lua
--- Load the generated file
+-- Carica il file generato
 local items = dofile("mymod.lua")
 
--- Access items
+-- Accedi agli oggetti
 print(items.HealthPotion.name)  -- "Health Potion"
 print(items.MagicSword.damage)  -- 150
 ```
 
-### JSON Integration (Python example)
+### Integrazione JSON (esempio Python)
 
 ```python
 import json
@@ -186,50 +186,50 @@ with open("mymod.json") as f:
 print(data["items"]["HealthPotion"]["name"])  # "Health Potion"
 ```
 
-### C++ Integration (using the library)
+### Integrazione C++ (usando la libreria)
 
 ```cpp
 #include <lex/lex.hpp>
 
-// Read your .lex file
+// Leggi il tuo file .lex
 std::ifstream file("mymod.lex");
 std::string source((std::istreambuf_iterator<char>(file)), {});
 
-// Compile
+// Compila
 lex::CompileOptions options;
 options.types = {"item", "character"};
 
 lex::CompileResult result = lex::compile(source, options);
 
 if (result.success) {
-    // Get JSON output
+    // Ottieni output JSON
     std::string json = result.outputs["json"];
     
-    // Parse and use in your game...
+    // Analizza e usa nel tuo gioco...
 }
 ```
 
-## Tips
+## Consigli
 
-1. **Start simple** — One type, a few definitions
-2. **Use `--verbose`** — See what the compiler is doing
-3. **Check errors carefully** — Lex tells you line numbers
-4. **Organize by type** — Keep items, characters, etc. in separate files if needed
+1. **Inizia semplice** — Un tipo, poche definizioni
+2. **Usa `--verbose`** — Vedi cosa sta facendo il compilatore
+3. **Controlla gli errori attentamente** — Lex ti indica i numeri di riga
+4. **Organizza per tipo** — Mantieni oggetti, personaggi, ecc. in file separati se necessario
 
-## Next Steps
+## Prossimi Passi
 
-- Read the [Language Specification](LEX_SPECIFICATION.md)
-- See more [Examples](../examples/)
-- Check the [ROADMAP](ROADMAP.md) for upcoming features
+- Leggi la [Specifica del Linguaggio](LEX_SPECIFICATION.md)
+- Vedi altri [Esempi](../examples/)
+- Controlla la [Roadmap](ROADMAP.md) per le funzionalità in arrivo
 
-## Getting Help
+## Ottenere Aiuto
 
-- Open an issue on GitHub
-- Check existing examples in the `examples/` directory
+- Apri una issue su GitHub
+- Controlla gli esempi esistenti nella directory `examples/`
 
 ---
 
-## 📚 Lingue della Documentazione
+## 📚 Documentazione
 
-- **English** (current)
-- **[Italiano / Italian](TUTORIAL_IT.md)**
+- **[English Tutorial](TUTORIAL.md)**
+- **[README in Italiano](../README_IT.md)**

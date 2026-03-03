@@ -108,6 +108,49 @@ std::string UnityBackend::generate(const std::vector<std::unique_ptr<Definition>
         output << "}\n\n";
     }
 
+    // Generate GameState class for condition evaluation
+    output << "// Game state for condition evaluation\n";
+    output << "[System.Serializable]\n";
+    output << "public class GameState {\n";
+    output << "    public HashSet<string> technologies = new HashSet<string>();\n";
+    output << "    public HashSet<string> structures = new HashSet<string>();\n";
+    output << "    public Dictionary<string, int> resources = new Dictionary<string, int>();\n";
+    output << "}\n\n";
+
+    // Generate LexHelpers static class
+    output << "// Condition helper functions\n";
+    output << "public static class LexHelpers {\n";
+    output << "    public static bool HasTechnology(string techId, GameState state) {\n";
+    output << "        return state != null && state.technologies.Contains(techId);\n";
+    output << "    }\n\n";
+    output << "    public static bool HasStructure(string structureId, GameState state) {\n";
+    output << "        return state != null && state.structures.Contains(structureId);\n";
+    output << "    }\n\n";
+    output << "    public static bool HasResources(Dictionary<string, int> required, GameState state) {\n";
+    output << "        if (state == null || required == null) return false;\n";
+    output << "        foreach (var kvp in required) {\n";
+    output << "            int available = state.resources.GetValueOrDefault(kvp.Key, 0);\n";
+    output << "            if (available < kvp.Value) return false;\n";
+    output << "        }\n";
+    output << "        return true;\n";
+    output << "    }\n\n";
+    output << "    public static bool EvaluateCondition(string expr, GameState state) {\n";
+    output << "        if (string.IsNullOrEmpty(expr)) return true;\n";
+    output << "        expr = expr.Trim();\n";
+    output << "        // Handle has_technology(X)\n";
+    output << "        if (expr.StartsWith(\"has_technology(\") && expr.EndsWith(\")\")) {\n";
+    output << "            string id = expr.Substring(15, expr.Length - 16);\n";
+    output << "            return HasTechnology(id, state);\n";
+    output << "        }\n";
+    output << "        // Handle has_structure(X)\n";
+    output << "        if (expr.StartsWith(\"has_structure(\") && expr.EndsWith(\")\")) {\n";
+    output << "            string id = expr.Substring(14, expr.Length - 15);\n";
+    output << "            return HasStructure(id, state);\n";
+    output << "        }\n";
+    output << "        return true;\n";
+    output << "    }\n";
+    output << "}\n\n";
+
     // Generate ScriptableObject class for each type
     for (const auto& [type_name, defs] : defs_by_type) {
         output << generate_scriptable_object_class(type_name, defs);

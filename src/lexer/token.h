@@ -29,6 +29,7 @@ enum class TokenType {
     ENDING,
     EVENT,
     SECRET,
+    TERRAIN,
 
     // Conditional Keywords
     WHEN,

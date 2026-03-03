@@ -172,6 +172,25 @@ void SchemaRegistry::load_imperium_default() {
         };
         register_definition(def);
     }
+    
+    // Terrain definition (for 4X/strategy games)
+    {
+        DefinitionSchema def;
+        def.name = "terrain";
+        def.description = "Map terrain type";
+        def.properties = {
+            {"name", true, "string", "Display name"},
+            {"movement_cost", false, "int", "Movement points to traverse"},
+            {"defense_bonus", false, "int", "Combat defense bonus"},
+            {"attack_bonus", false, "int", "Combat attack bonus"},
+            {"arcane_bonus", false, "bool", "Arcane/magic bonus"},
+            {"buildable", false, "bool", "Can structures be built here"},
+            {"description", false, "string", "Terrain description"},
+            {"color", false, "string", "Display color (hex)"},
+            {"icon", false, "string", "UI icon path"}
+        };
+        register_definition(def);
+    }
 }
 
 } // namespace lex

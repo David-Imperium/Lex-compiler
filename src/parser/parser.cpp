@@ -84,7 +84,8 @@ bool Parser::is_definition_keyword(TokenType type) {
            type == TokenType::CHOICE ||
            type == TokenType::ENDING ||
            type == TokenType::EVENT ||
-           type == TokenType::SECRET;
+           type == TokenType::SECRET ||
+           type == TokenType::TERRAIN;
 }
 
 // ============================================================================
@@ -113,6 +114,9 @@ std::unique_ptr<Definition> Parser::parse_definition() {
             return parse_event();
         case TokenType::SECRET:
             return parse_secret();
+        case TokenType::TERRAIN:
+            pos_++;  // Consume TERRAIN token
+            return parse_generic_definition("terrain");
         case TokenType::IDENTIFIER: {
             // Support for custom definition types from schema
             auto& schema = SchemaRegistry::instance();
@@ -558,17 +562,38 @@ std::unique_ptr<PropertyValue> Parser::parse_brace_value() {
         }
         pos_++;  // Skip colon
         
-        // Expect number
-        if (!check(TokenType::INTEGER)) {
-            error("Expected quantity after ':'");
+        // Expect value - could be integer, string, or nested structure
+        if (check(TokenType::INTEGER)) {
+            int64_t quantity = std::get<int64_t>(current().value);
+            pos_++;
+            map->resources[resource] = quantity;
+        } else if (check(TokenType::STRING)) {
+            // String value - store as string resource with quantity 0
+            pos_++;
+            // Skip for now, could extend ResourceMap to support strings
+        } else if (check(TokenType::LEFT_BRACKET)) {
+            // Nested list - skip the entire bracket content
+            int depth = 1;
+            pos_++;  // consume '['
+            while (depth > 0 && pos_ < tokens_.size()) {
+                if (check(TokenType::LEFT_BRACKET)) depth++;
+                else if (check(TokenType::RIGHT_BRACKET)) depth--;
+                pos_++;
+            }
+        } else if (check(TokenType::LEFT_BRACE)) {
+            // Nested object - skip the entire brace content
+            int depth = 1;
+            pos_++;  // consume '{'
+            while (depth > 0 && pos_ < tokens_.size()) {
+                if (check(TokenType::LEFT_BRACE)) depth++;
+                else if (check(TokenType::RIGHT_BRACE)) depth--;
+                pos_++;
+            }
+        } else {
+            error("Expected value after ':'");
             pos_++;
             break;
         }
-        
-        int64_t quantity = std::get<int64_t>(current().value);
-        pos_++;
-        
-        map->resources[resource] = quantity;
         
         // Optional comma
         if (check(TokenType::COMMA)) {
@@ -950,23 +975,42 @@ std::unique_ptr<Condition> Parser::parse_condition() {
     }
     pos_++;  // Consume trigger
 
-    // Parse condition expression using the full expression parser
-    cond->expression = parse_expression();
+    // Check for "keyword: { ... }" format (property-style condition)
+    // vs "keyword expr { ... }" format (expression condition)
+    if (check(TokenType::COLON)) {
+        // Property-style: available_if: { technologies: [X] }
+        pos_++;  // Consume ':'
+        
+        consume(TokenType::LEFT_BRACE, "Expected '{' after ':' in condition");
 
-    if (!cond->expression) {
-        error("Expected condition expression");
-        return nullptr;
+        while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
+            auto prop = parse_property();
+            if (prop) cond->properties.push_back(std::move(prop));
+        }
+
+        consume(TokenType::RIGHT_BRACE, "Expected '}' after condition block");
+
+        // Create a simple "true" expression as placeholder
+        cond->expression = Expression::make_bool(true);
+    } else {
+        // Expression-style: when expr { ... }
+        cond->expression = parse_expression();
+
+        if (!cond->expression) {
+            error("Expected condition expression");
+            return nullptr;
+        }
+
+        // Parse block
+        consume(TokenType::LEFT_BRACE, "Expected '{' after condition");
+
+        while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
+            auto prop = parse_property();
+            if (prop) cond->properties.push_back(std::move(prop));
+        }
+
+        consume(TokenType::RIGHT_BRACE, "Expected '}' after condition block");
     }
-
-    // Parse block
-    consume(TokenType::LEFT_BRACE, "Expected '{' after condition");
-
-    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        auto prop = parse_property();
-        if (prop) cond->properties.push_back(std::move(prop));
-    }
-
-    consume(TokenType::RIGHT_BRACE, "Expected '}' after condition block");
 
     return cond;
 }

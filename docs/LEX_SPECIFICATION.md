@@ -1,8 +1,8 @@
 # Lex Language Specification
 
-**Version:** 0.1.0  
-**Last Updated:** 2026-03-01  
-**Status:** Draft
+**Version:** 0.3.2  
+**Last Updated:** 2026-03-03  
+**Status:** Active Development
 
 ---
 
@@ -281,7 +281,7 @@ Definition      = EraDefinition
 
 #### Era Definition
 ```ebnf
-EraDefinition       = "era" | "era" Identifier "{" 
+EraDefinition       = "era" Identifier "{" 
                         EraProperty { "," EraProperty } 
                       "}"
 

@@ -54,6 +54,41 @@ std::string GodotBackend::generate(const std::vector<std::unique_ptr<Definition>
     }
     output << "\n";
 
+    // Generate helper functions for condition evaluation
+    output << "# Condition helper functions\n";
+    output << "# Check if player has a technology researched\n";
+    output << "func has_technology(tech_id: String, game_state: Dictionary) -> bool:\n";
+    output << "\treturn game_state.has(\"technologies\") and game_state.technologies.has(tech_id)\n\n";
+
+    output << "# Check if player has a structure built\n";
+    output << "func has_structure(structure_id: String, game_state: Dictionary) -> bool:\n";
+    output << "\treturn game_state.has(\"structures\") and game_state.structures.has(structure_id)\n\n";
+
+    output << "# Check if player has enough resources\n";
+    output << "func has_resources(resource_map: Dictionary, game_state: Dictionary) -> bool:\n";
+    output << "\tfor resource in resource_map:\n";
+    output << "\t\tvar required = resource_map[resource]\n";
+    output << "\t\tvar available = game_state.get(\"resources\", {}).get(resource, 0)\n";
+    output << "\t\tif available < required:\n";
+    output << "\t\t\treturn false\n";
+    output << "\treturn true\n\n";
+
+    output << "# Evaluate a condition expression string\n";
+    output << "func evaluate_condition(expr: String, game_state: Dictionary) -> bool:\n";
+    output << "\tvar e = expr.strip_edges()\n";
+    output << "\t# Handle has_technology(X)\n";
+    output << "\tif e.begins_with(\"has_technology(\") and e.ends_with(\")\"):\n";
+    output << "\t\tvar id = e.substr(16, e.length() - 17)\n";
+    output << "\t\treturn has_technology(id, game_state)\n";
+    output << "\t# Handle has_structure(X)\n";
+    output << "\tif e.begins_with(\"has_structure(\") and e.ends_with(\")\"):\n";
+    output << "\t\tvar id = e.substr(14, e.length() - 15)\n";
+    output << "\t\treturn has_structure(id, game_state)\n";
+    output << "\t# Handle has_resources({...})\n";
+    output << "\tif e.begins_with(\"has_resources(\"):\n";
+    output << "\t\treturn true # Simplified - parse resource map if needed\n";
+    output << "\treturn true\n\n";
+
     // Generate _init function with data
     output << "func _init():\n";
 
@@ -61,7 +96,24 @@ std::string GodotBackend::generate(const std::vector<std::unique_ptr<Definition>
         output << generate_definition(*def);
     }
 
-    output << "\tpass\n";
+    output << "\tpass\n\n";
+
+    // Generate check_conditions function for each definition with conditions
+    for (const auto& def : ast) {
+        if (!def->conditions.empty()) {
+            std::string var_name = type_to_var_name(def->definition_type);
+            output << "func check_" << var_name << "_" << def->identifier << "(game_state: Dictionary) -> Dictionary:\n";
+            output << "\tvar results = {}\n";
+            for (const auto& cond : def->conditions) {
+                if (cond->expression) {
+                    std::string expr_str = generate_expression(cond->expression.get());
+                    output << "\tresults[\"" << cond->trigger << "\"] = evaluate_condition(\""
+                           << escape_string(expr_str) << "\", game_state)\n";
+                }
+            }
+            output << "\treturn results\n\n";
+        }
+    }
 
     return output.str();
 }

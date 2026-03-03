@@ -1,49 +1,49 @@
-﻿# Lex Compiler
+# Lex Compiler
 
 [![CI](https://github.com/David-Imperium/Lex-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/David-Imperium/Lex-compiler/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-0.3.2-blue.svg)](https://github.com/David-Imperium/Lex-compiler)
 
-A declarative, multi-target transpiler for game content.
+Un transpiler dichiarativo e multi-target per contenuti di gioco.
 
-**Principle:** *Describe what, not how.*
+**Principio:** *Descrivi il cosa, non il come.*
 
-## Quick Start
+## Guida Rapida
 
 ```bash
-# Clone and build
+# Clona e compila
 git clone https://github.com/David-Imperium/Lex-compiler.git
 cd lex
 cmake -B build -S .
 cmake --build build --config Release
 
-# Try it!
+# Provalo!
 .\build\Release\lexc.exe examples\imperium_minimal.lex -t lua,json
 ```
 
-## Usage
+## Utilizzo
 
 ```bash
-# Basic usage (uses default Imperium schema)
+# Utilizzo base (usa lo schema Imperium predefinito)
 lexc input.lex -t lua,json
 
-# Custom schema for your game
+# Schema personalizzato per il tuo gioco
 lexc input.lex --types item,character,location -t json
 
-# Multiple outputs
+# Output multipli
 lexc input.lex -o output/ -t lua,json
 ```
 
-Options:
-- `-o, --output <dir>` — Output directory
-- `-t, --target <fmt>` — Output format(s): lua, json
-- `--types <list>` — Custom definition types (comma-separated)
-- `--no-validate` — Skip semantic validation
-- `-h, --help` — Show help
+Opzioni:
+- `-o, --output <dir>` — Directory di output
+- `-t, --target <fmt>` — Formato/i di output: lua, json
+- `--types <list>` — Tipi di definizione personalizzati (separati da virgola)
+- `--no-validate` — Salta la validazione semantica
+- `-h, --help` — Mostra l'aiuto
 
-## Custom Schemas
+## Schemi Personalizzati
 
-Lex is **agnostic** — define your own types:
+Lex è **agnostico** — definisci i tuoi tipi:
 
 ```lex
 character Hero {
@@ -59,7 +59,7 @@ item Sword {
 }
 ```
 
-Compile with:
+Compila con:
 ```bash
 lexc game.lex --types character,item -t json
 ```
@@ -88,9 +88,9 @@ Output:
 }
 ```
 
-## Example
+## Esempio
 
-Default schema (Imperium-style):
+Schema predefinito (stile Imperium):
 
 ```lex
 structure SteamFactory {
@@ -113,47 +113,47 @@ structure SteamFactory {
 }
 ```
 
-## Features
+## Caratteristiche
 
-- **Declarative syntax** — Clean, readable definitions
-- **Multi-target** — Lua, JSON, Godot (GDScript), Unity (C#), and Love2D backends
-- **Custom schemas** — Define your own types via `--types`
-- **Type-safe** — Strong typing with inference
-- **Semantic validation** — Catches errors before runtime
-- **Expression parser** — Full operator precedence support
-- **English keywords** — Accessible to international community
+- **Sintassi dichiarativa** — Definizioni pulite e leggibili
+- **Multi-target** — Backend Lua, JSON, Godot (GDScript), Unity (C#), e Love2D
+- **Schemi personalizzati** — Definisci i tuoi tipi tramite `--types`
+- **Type-safe** — Tipizzazione forte con inferenza
+- **Validazione semantica** — Rileva errori prima del runtime
+- **Parser di espressioni** — Supporto completo per precedenza operatori
+- **Parole chiave inglesi** — Accessibile alla comunità internazionale
 
 ## Roadmap
 
-| Version | Status | Features |
-|---------|--------|----------|
-| v0.3.1 | ✅ Current | Agnostic core, `--types` flag |
-| v0.4.0 | 🔜 Next | Binary releases, tutorials, expanded docs |
-| v0.5.0 | 📋 Planned | TypeScript backend |
+| Versione | Stato | Funzionalità |
+|----------|-------|--------------|
+| v0.3.1 | ✅ Corrente | Core agnostico, flag `--types` |
+| v0.4.0 | 🔜 Prossima | Release binarie, tutorial, estensione VS Code |
+| v0.5.0 | 📋 Pianificata | Backend TypeScript |
 
-See [ROADMAP.md](docs/ROADMAP.md) for details.
+Vedi [ROADMAP.md](docs/ROADMAP.md) per dettagli.
 
 ## Testing
 
 ```bash
-# Unit tests
+# Unit test
 .\build\tests\Debug\lexer_tests.exe
 
-# Lua output validation
+# Validazione output Lua
 python tests/lua_validator.py output/game.lua
 ```
 
-## License
+## Licenza
 
 MIT
 
-## Author
+## Autore
 
 David (Imperium Game Engine)
 
 ---
 
-## 📚 Documentation Languages
+## 📚 Documentazione
 
-- **English** (current)
-- **[Italiano / Italian](README_IT.md)**
+- **[English README](README.md)**
+- **[Tutorial in Italiano](docs/TUTORIAL_IT.md)**

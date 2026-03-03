@@ -5,7 +5,7 @@ Thanks for your interest in contributing!
 ## Development Setup
 
 ```bash
-git clone https://github.com/david/lex.git
+git clone https://github.com/David-Imperium/Lex-compiler.git
 cd lex
 cmake -B build -S .
 cmake --build build --config Release

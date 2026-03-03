@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.3.2] - 2026-03-03
+
+### Added
+- **Dynamic Lua Backend** - Runtime module loading and hot-reload support
+- **Library Refactor** - Core compiler as reusable library
+- **VS Code Extension** - Syntax highlighting and basic language support
+- **GitHub Actions** - Automated CI/CD with binary releases
+
+### Changed
+- Improved CLI architecture with better error messages
+
+## [0.3.1] - 2026-03-02
+
+### Added
+- **Godot Backend** - Generate GDScript for Godot Engine projects
+- **Unity Backend** - Generate C# scripts for Unity game development
+- **Love2D Backend** - Generate Lua scripts optimized for LÖVE framework
+
 ## [0.3.0] - 2026-03-02
 
 ### Added
@@ -55,6 +73,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Target | Features |
 |---------|--------|----------|
-| 0.3.1 | TBD | React/TypeScript backend |
-| 0.4.0 | TBD | VS Code extension |
+| 0.4.0 | TBD | Binary releases, expanded tutorials |
+| 0.5.0 | TBD | TypeScript backend |
 | 1.0.0 | TBD | Stable release, full documentation |
