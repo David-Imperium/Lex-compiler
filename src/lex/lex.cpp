@@ -11,6 +11,7 @@
 #include "codegen/love2d_backend.h"
 #include "codegen/defold_backend.h"
 #include "schema/schema.h"
+#include "context/context.hpp"
 
 #include "ast/ast.h"
 
@@ -532,4 +533,59 @@ CompileResult validate(const std::string& source, const CompileOptions& options)
     validate_options.targets = {};  // No code generation
     return compile(source, validate_options);
 }
+
+// ============================================================================
+// AI Context Generation
+// ============================================================================
+
+ContextResult generate_context_from_source(
+    const std::string& source,
+    const ContextOptions& options
+) {
+    // Initialize schema
+    auto& schema = SchemaRegistry::instance();
+    schema.load_imperium_default();
+
+    // Lexing
+    Lexer lexer(source, "context_source");
+    auto tokens = lexer.tokenize();
+    if (lexer.has_errors()) {
+        ContextResult result;
+        result.success = false;
+        result.error = lexer.errors().empty() ? "Lexer error" : lexer.errors()[0];
+        return result;
+    }
+
+    // Parsing
+    Parser parser(tokens);
+    auto ast = parser.parse();
+    if (parser.has_errors()) {
+        ContextResult result;
+        result.success = false;
+        result.error = parser.errors().empty() ? "Parser error" : parser.errors()[0];
+        return result;
+    }
+
+    // Generate context
+    return generate_context(ast, options);
+}
+
+ContextResult generate_context_from_file(
+    const std::string& filepath,
+    const ContextOptions& options
+) {
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+        ContextResult result;
+        result.success = false;
+        result.error = "Cannot open file: " + filepath;
+        return result;
+    }
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    
+    return generate_context_from_source(buffer.str(), options);
+}
+
 } // namespace lex

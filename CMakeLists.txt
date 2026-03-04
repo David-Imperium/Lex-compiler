@@ -23,6 +23,7 @@ add_library(lex STATIC
     src/codegen/love2d_backend.cpp
     src/codegen/defold_backend.cpp
     src/schema/schema.cpp
+    src/context/context_generator.cpp
 )
 
 target_include_directories(lex

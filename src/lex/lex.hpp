@@ -6,6 +6,9 @@
 #include <optional>
 #include <functional>
 
+// Include context API
+#include "../context/context.hpp"
+
 namespace lex {
 
 // ============================================================================
@@ -140,5 +143,21 @@ std::string version();
 // Get target file extension
 std::string target_extension(Target target);
 std::string target_extension(const std::string& target_name);
+
+// ============================================================================
+// AI Context Generation
+// ============================================================================
+
+// Generate context from source string
+ContextResult generate_context_from_source(
+    const std::string& source,
+    const ContextOptions& options = {}
+);
+
+// Generate context from file
+ContextResult generate_context_from_file(
+    const std::string& filepath,
+    const ContextOptions& options = {}
+);
 
 } // namespace lex
