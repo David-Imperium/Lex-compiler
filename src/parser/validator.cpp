@@ -1,4 +1,5 @@
 #include "validator.h"
+#include "../schema/schema.h"
 #include <sstream>
 
 namespace lex {
@@ -24,20 +25,16 @@ void Validator::add_warning(const std::string& code, const std::string& message,
 bool Validator::validate(const std::vector<std::unique_ptr<Definition>>& definitions) {
     errors_.clear();
     warnings_.clear();
-    eras_.clear();
-    structures_.clear();
-    units_.clear();
-    technologies_.clear();
-    resources_.clear();
+    symbols_by_type_.clear();
     all_symbols_.clear();
 
-    // Phase 1: Register all symbols
+    // Phase 1: Register all symbols by type
     register_symbols(definitions);
 
     // Phase 2: Validate references
     validate_references(definitions);
 
-    // Phase 3: Validate required properties
+    // Phase 3: Validate required properties (schema-driven)
     validate_required_properties(definitions);
 
     // Phase 4: Validate resource maps
@@ -49,7 +46,7 @@ bool Validator::validate(const std::vector<std::unique_ptr<Definition>>& definit
 void Validator::register_symbols(const std::vector<std::unique_ptr<Definition>>& definitions) {
     for (const auto& def : definitions) {
         std::string symbol = def->identifier;
-        
+
         // Check for duplicate definitions (any type)
         if (all_symbols_.find(symbol) != all_symbols_.end()) {
             add_error(
@@ -59,73 +56,67 @@ void Validator::register_symbols(const std::vector<std::unique_ptr<Definition>>&
             );
             continue;
         }
-        
+
         all_symbols_.insert(symbol);
-        
-        // Register by type
-        if (def->definition_type == "era") {
-            eras_.insert(symbol);
-        } else if (def->definition_type == "structure") {
-            structures_.insert(symbol);
-        } else if (def->definition_type == "unit") {
-            units_.insert(symbol);
-        } else if (def->definition_type == "technology") {
-            technologies_.insert(symbol);
-        } else if (def->definition_type == "resource") {
-            resources_.insert(symbol);
-        }
+
+        // Register by type (dynamic - works for any definition type)
+        symbols_by_type_[def->definition_type].insert(symbol);
     }
 }
 
 void Validator::validate_references(const std::vector<std::unique_ptr<Definition>>& definitions) {
+    auto& schema = SchemaRegistry::instance();
+
     for (const auto& def : definitions) {
+        // Get schema for this definition type
+        auto def_schema = schema.get_definition(def->definition_type);
+
         for (const auto& prop : def->properties) {
             if (!prop->value) continue;
-            
-            // Check era reference
-            if (prop->name == "era" && prop->value->expression) {
-                auto& expr = prop->value->expression;
-                if (expr->type == Expression::Type::REFERENCE) {
-                    if (eras_.find(expr->reference) == eras_.end()) {
+
+            // Get property schema to check reference_type
+            std::string reference_type;
+            if (def_schema) {
+                auto prop_schema = def_schema->get_property(prop->name);
+                if (prop_schema) {
+                    reference_type = prop_schema->reference_type;
+                }
+            }
+
+            // Fallback to heuristic for legacy compatibility
+            if (reference_type.empty()) {
+                if (prop->name == "era") reference_type = "era";
+                else if (prop->name == "technologies" || prop->name == "prerequisites") reference_type = "technology";
+                else if (prop->name == "structures") reference_type = "structure";
+                else if (prop->name == "units") reference_type = "unit";
+            }
+
+            // Validate single reference (e.g., era: Ancient)
+            if (prop->value->expression && prop->value->expression->type == Expression::Type::REFERENCE) {
+                if (!reference_type.empty()) {
+                    auto& refs = symbols_by_type_[reference_type];
+                    if (refs.find(prop->value->expression->reference) == refs.end()) {
                         add_error(
-                            "UNDEFINED_ERA",
-                            "Structure '" + def->identifier + "' references undefined era: " + expr->reference,
+                            "UNDEFINED_REFERENCE",
+                            "'" + def->identifier + "' references undefined " + reference_type + ": " + prop->value->expression->reference,
                             def->location
                         );
                     }
                 }
             }
-            
-            // Check reference lists
-            if (prop->value->type == PropertyValue::Type::REFERENCE_LIST) {
+
+            // Validate reference lists
+            if (prop->value->type == PropertyValue::Type::REFERENCE_LIST && !reference_type.empty()) {
                 for (const auto& ref : prop->value->reference_list->references) {
                     if (ref.empty()) continue;
-                    
-                    // Check based on property name
-                    if (prop->name == "technologies" || prop->name == "prerequisites") {
-                        if (technologies_.find(ref) == technologies_.end()) {
-                            add_warning(
-                                "UNDEFINED_TECHNOLOGY",
-                                "'" + def->identifier + "' references undefined technology: " + ref + " (forward reference allowed)",
-                                def->location
-                            );
-                        }
-                    } else if (prop->name == "structures") {
-                        if (structures_.find(ref) == structures_.end()) {
-                            add_warning(
-                                "UNDEFINED_STRUCTURE",
-                                "'" + def->identifier + "' references undefined structure: " + ref,
-                                def->location
-                            );
-                        }
-                    } else if (prop->name == "units") {
-                        if (units_.find(ref) == units_.end()) {
-                            add_warning(
-                                "UNDEFINED_UNIT",
-                                "'" + def->identifier + "' references undefined unit: " + ref,
-                                def->location
-                            );
-                        }
+
+                    auto& refs = symbols_by_type_[reference_type];
+                    if (refs.find(ref) == refs.end()) {
+                        add_warning(
+                            "UNDEFINED_REFERENCE",
+                            "'" + def->identifier + "' references undefined " + reference_type + ": " + ref,
+                            def->location
+                        );
                     }
                 }
             }
@@ -134,35 +125,27 @@ void Validator::validate_references(const std::vector<std::unique_ptr<Definition
 }
 
 void Validator::validate_required_properties(const std::vector<std::unique_ptr<Definition>>& definitions) {
+    auto& schema = SchemaRegistry::instance();
+
     for (const auto& def : definitions) {
+        // Get schema for this definition type
+        auto def_schema = schema.get_definition(def->definition_type);
+
+        // If no schema, skip validation (custom types have no required props)
+        if (!def_schema) continue;
+
         // Collect property names
         std::set<std::string> prop_names;
         for (const auto& prop : def->properties) {
             prop_names.insert(prop->name);
         }
 
-        // Validate based on definition type
-        if (def->definition_type == "structure") {
-            if (prop_names.find("era") == prop_names.end()) {
+        // Check required properties from schema
+        for (const auto& prop_schema : def_schema->properties) {
+            if (prop_schema.required && prop_names.find(prop_schema.name) == prop_names.end()) {
                 add_error(
                     "MISSING_REQUIRED_PROPERTY",
-                    "Structure '" + def->identifier + "' is missing required property: era",
-                    def->location
-                );
-            }
-        } else if (def->definition_type == "unit") {
-            if (prop_names.find("era") == prop_names.end()) {
-                add_error(
-                    "MISSING_REQUIRED_PROPERTY",
-                    "Unit '" + def->identifier + "' is missing required property: era",
-                    def->location
-                );
-            }
-        } else if (def->definition_type == "technology") {
-            if (prop_names.find("research_cost") == prop_names.end()) {
-                add_error(
-                    "MISSING_REQUIRED_PROPERTY",
-                    "Technology '" + def->identifier + "' is missing required property: research_cost",
+                    def->definition_type + " '" + def->identifier + "' is missing required property: " + prop_schema.name,
                     def->location
                 );
             }
@@ -174,10 +157,10 @@ void Validator::validate_resource_maps(const std::vector<std::unique_ptr<Definit
     for (const auto& def : definitions) {
         for (const auto& prop : def->properties) {
             if (!prop->value || prop->value->type != PropertyValue::Type::RESOURCE_MAP) continue;
-            
+
             auto* map = prop->value->resource_map.get();
             if (!map) continue;
-            
+
             // Check for negative values in cost/production/maintenance
             if (prop->name == "cost" || prop->name == "production" || prop->name == "maintenance") {
                 for (const auto& [resource, amount] : map->resources) {

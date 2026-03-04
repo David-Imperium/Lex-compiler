@@ -16,6 +16,7 @@ struct PropertySchema {
     std::string name;
     bool required = false;
     std::string type_hint;  // "int", "float", "string", "bool", "resource_map", "reference_list"
+    std::string reference_type;  // If reference_list, what type does it reference? (e.g., "technology", "structure")
     std::string description;
 };
 

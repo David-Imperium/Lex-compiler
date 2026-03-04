@@ -5,6 +5,7 @@
 #include "../src/lexer/keywords.h"
 #include "../src/parser/parser.h"
 #include "../src/ast/ast.h"
+#include "../src/schema/schema.h"
 
 #include <regex>
 #include <string>
@@ -1004,6 +1005,60 @@ TEST_CASE("Backend - Dynamic Schema") {
         JsonBackend json_backend;
         std::string json_output = json_backend.generate(ast);
         REQUIRE(json_output.find("custom_prop") != std::string::npos);
+    }
+}
+
+TEST_CASE("Agnostic Schema - Custom Types") {
+    // Test that Lex works with any schema, not just Imperium
+    SECTION("RPG schema types") {
+        // Load custom schema
+        auto& schema = SchemaRegistry::instance();
+        schema.clear();
+        schema.load_from_cli("character,item,quest");
+
+        // Parse custom types
+        Lexer lexer(R"(
+            character Hero { health: 100 mana: 50 }
+            item Sword { damage: 25 rarity: "legendary" }
+            quest SaveVillage { reward: { Gold: 500 } }
+        )");
+        auto tokens = lexer.tokenize();
+        REQUIRE(!lexer.has_errors());
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+        REQUIRE(!parser.has_errors());
+        REQUIRE(ast.size() == 3);
+
+        // Check types
+        REQUIRE(ast[0]->definition_type == "character");
+        REQUIRE(ast[0]->identifier == "Hero");
+        REQUIRE(ast[1]->definition_type == "item");
+        REQUIRE(ast[1]->identifier == "Sword");
+        REQUIRE(ast[2]->definition_type == "quest");
+        REQUIRE(ast[2]->identifier == "SaveVillage");
+
+        // Generate JSON
+        JsonBackend json_backend;
+        std::string json_output = json_backend.generate(ast);
+
+        REQUIRE(json_output.find("\"characters\":") != std::string::npos);
+        REQUIRE(json_output.find("\"items\":") != std::string::npos);
+        REQUIRE(json_output.find("\"quests\":") != std::string::npos);
+        REQUIRE(json_output.find("\"health\": 100") != std::string::npos);
+        REQUIRE(json_output.find("\"damage\": 25") != std::string::npos);
+
+        // Generate Lua
+        LuaBackend lua_backend;
+        std::string lua_output = lua_backend.generate(ast);
+
+        REQUIRE(lua_output.find("Characters") != std::string::npos);
+        REQUIRE(lua_output.find("Items") != std::string::npos);
+        REQUIRE(lua_output.find("Quests") != std::string::npos);
+        REQUIRE(lua_output.find("health = 100") != std::string::npos);
+
+        // Restore default schema
+        schema.load_imperium_default();
     }
 }
 

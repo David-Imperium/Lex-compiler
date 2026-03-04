@@ -41,15 +41,6 @@ private:
 
     // Definition parsing
     std::unique_ptr<Definition> parse_definition();
-    std::unique_ptr<EraDefinition> parse_era();
-    std::unique_ptr<StructureDefinition> parse_structure();
-    std::unique_ptr<UnitDefinition> parse_unit();
-    std::unique_ptr<TechnologyDefinition> parse_technology();
-    std::unique_ptr<ResourceDefinition> parse_resource();
-    std::unique_ptr<ChoiceDefinition> parse_choice();
-    std::unique_ptr<EndingDefinition> parse_ending();
-    std::unique_ptr<EventDefinition> parse_event();
-    std::unique_ptr<SecretDefinition> parse_secret();
     std::unique_ptr<Definition> parse_generic_definition(const std::string& type_name);
 
     // Property parsing

@@ -1,4 +1,5 @@
 #include "type_checker.h"
+#include "../schema/schema.h"
 #include <sstream>
 
 namespace lex {
@@ -294,36 +295,20 @@ std::optional<LexType> TypeChecker::get_expected_property_type(
         return LexType::REFERENCE;
     }
 
-    // Definition-specific properties
-    if (definition_type == "structure") {
-        if (property_name == "cost" || property_name == "production" ||
-            property_name == "maintenance") {
-            return LexType::RESOURCE_MAP;
-        }
-    }
-
-    if (definition_type == "unit") {
-        if (property_name == "attack" || property_name == "defense" ||
-            property_name == "movement" || property_name == "range") {
-            return LexType::INTEGER;
-        }
-        if (property_name == "cost" || property_name == "maintenance") {
-            return LexType::RESOURCE_MAP;
-        }
-    }
-
-    if (definition_type == "technology") {
-        if (property_name == "research_cost") {
-            return LexType::INTEGER;
-        }
-        if (property_name == "prerequisites" || property_name == "unlocks") {
-            return LexType::REFERENCE_LIST;
-        }
-    }
-
-    if (definition_type == "era") {
-        if (property_name == "period" || property_name == "music") {
-            return LexType::STRING;
+    // Try schema-driven lookup
+    auto& schema = SchemaRegistry::instance();
+    auto def_schema = schema.get_definition(definition_type);
+    if (def_schema) {
+        auto prop_schema = def_schema->get_property(property_name);
+        if (prop_schema) {
+            // Convert type_hint to LexType
+            const std::string& hint = prop_schema->type_hint;
+            if (hint == "int" || hint == "integer") return LexType::INTEGER;
+            if (hint == "float" || hint == "double") return LexType::FLOAT;
+            if (hint == "string" || hint == "str") return LexType::STRING;
+            if (hint == "bool" || hint == "boolean") return LexType::BOOLEAN;
+            if (hint == "resource_map") return LexType::RESOURCE_MAP;
+            if (hint == "reference_list") return LexType::REFERENCE_LIST;
         }
     }
 

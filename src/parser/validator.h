@@ -34,18 +34,14 @@ public:
 private:
     std::vector<SemanticError> errors_;
     std::vector<SemanticError> warnings_;
-    
-    // Symbol tables by type
-    std::set<std::string> eras_;
-    std::set<std::string> structures_;
-    std::set<std::string> units_;
-    std::set<std::string> technologies_;
-    std::set<std::string> resources_;
+
+    // Symbol tables - dynamic by type
+    std::map<std::string, std::set<std::string>> symbols_by_type_;
     std::set<std::string> all_symbols_;
 
     void add_error(const std::string& code, const std::string& message, const std::string& location);
     void add_warning(const std::string& code, const std::string& message, const std::string& location);
-    
+
     void register_symbols(const std::vector<std::unique_ptr<Definition>>& definitions);
     void validate_references(const std::vector<std::unique_ptr<Definition>>& definitions);
     void validate_required_properties(const std::vector<std::unique_ptr<Definition>>& definitions);

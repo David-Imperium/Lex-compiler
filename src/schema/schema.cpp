@@ -56,51 +56,51 @@ void SchemaRegistry::load_imperium_default() {
         def.name = "structure";
         def.description = "Buildable structure";
         def.properties = {
-            {"era", true, "string", "Required era"},
-            {"cost", true, "resource_map", "Resource cost"},
-            {"production", false, "resource_map", "Resources produced per turn"},
-            {"maintenance", false, "resource_map", "Upkeep cost per turn"},
-            {"requires", false, "reference_list", "Prerequisite technologies"},
-            {"unlocks", false, "reference_list", "Technologies unlocked"},
-            {"description", false, "string", "In-game description"},
-            {"icon", false, "string", "UI icon path"},
-            {"tooltip", false, "string", "Hover tooltip text"}
+            {"era", true, "string", "era", "Required era"},
+            {"cost", true, "resource_map", "", "Resource cost"},
+            {"production", false, "resource_map", "", "Resources produced per turn"},
+            {"maintenance", false, "resource_map", "", "Upkeep cost per turn"},
+            {"requires", false, "reference_list", "technology", "Prerequisite technologies"},
+            {"unlocks", false, "reference_list", "technology", "Technologies unlocked"},
+            {"description", false, "string", "", "In-game description"},
+            {"icon", false, "string", "", "UI icon path"},
+            {"tooltip", false, "string", "", "Hover tooltip text"}
         };
         register_definition(def);
     }
-    
+
     // Unit definition
     {
         DefinitionSchema def;
         def.name = "unit";
         def.description = "Military or civilian unit";
         def.properties = {
-            {"era", true, "string", "Required era"},
-            {"type", false, "string", "Unit type (military, civilian, etc.)"},
-            {"cost", true, "resource_map", "Resource cost"},
-            {"maintenance", false, "resource_map", "Upkeep cost per turn"},
-            {"attack", false, "int", "Attack strength"},
-            {"defense", false, "int", "Defense rating"},
-            {"movement", false, "int", "Movement points"},
-            {"range", false, "int", "Attack range"},
-            {"requires", false, "reference_list", "Prerequisites"},
-            {"description", false, "string", "Unit description"}
+            {"era", true, "string", "era", "Required era"},
+            {"type", false, "string", "", "Unit type (military, civilian, etc.)"},
+            {"cost", true, "resource_map", "", "Resource cost"},
+            {"maintenance", false, "resource_map", "", "Upkeep cost per turn"},
+            {"attack", false, "int", "", "Attack strength"},
+            {"defense", false, "int", "", "Defense rating"},
+            {"movement", false, "int", "", "Movement points"},
+            {"range", false, "int", "", "Attack range"},
+            {"requires", false, "reference_list", "technology", "Prerequisites"},
+            {"description", false, "string", "", "Unit description"}
         };
         register_definition(def);
     }
-    
+
     // Technology definition
     {
         DefinitionSchema def;
         def.name = "technology";
         def.description = "Researchable technology";
         def.properties = {
-            {"era", true, "string", "Required era"},
-            {"research_cost", true, "int", "Research points needed"},
-            {"prerequisites", false, "reference_list", "Required technologies"},
-            {"unlocks", false, "reference_list", "What this unlocks"},
-            {"description", false, "string", "Technology description"},
-            {"quote", false, "string", "Flavor quote"}
+            {"era", true, "string", "era", "Required era"},
+            {"research_cost", true, "int", "", "Research points needed"},
+            {"prerequisites", false, "reference_list", "technology", "Required technologies"},
+            {"unlocks", false, "reference_list", "technology", "What this unlocks"},
+            {"description", false, "string", "", "Technology description"},
+            {"quote", false, "string", "", "Flavor quote"}
         };
         register_definition(def);
     }

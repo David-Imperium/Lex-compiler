@@ -21,6 +21,7 @@ add_executable(lexer_tests
     ${CMAKE_SOURCE_DIR}/src/semantic/type_checker.cpp
     ${CMAKE_SOURCE_DIR}/src/codegen/lua_backend.cpp
     ${CMAKE_SOURCE_DIR}/src/codegen/json_backend.cpp
+    ${CMAKE_SOURCE_DIR}/src/schema/schema.cpp
 )
 
 target_include_directories(lexer_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)

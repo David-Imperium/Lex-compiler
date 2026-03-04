@@ -180,66 +180,6 @@ public:
 };
 
 // ============================================================================
-// Concrete Definitions (convenience accessors)
-// ============================================================================
-
-class EraDefinition : public Definition {
-public:
-    EraDefinition() { definition_type = "era"; }
-    // Properties: name, period, music, dominant_color, atmosphere
-};
-
-class StructureDefinition : public Definition {
-public:
-    StructureDefinition() { definition_type = "structure"; }
-    // Properties: era, cost, production, maintenance, requires, unlocks,
-    //             description, icon, tooltip
-};
-
-class UnitDefinition : public Definition {
-public:
-    UnitDefinition() { definition_type = "unit"; }
-    // Properties: era, type, cost, maintenance, attack, defense, movement, range,
-    //             requires, description
-};
-
-class TechnologyDefinition : public Definition {
-public:
-    TechnologyDefinition() { definition_type = "technology"; }
-    // Properties: era, research_cost, prerequisites, unlocks, description, quote
-};
-
-class ResourceDefinition : public Definition {
-public:
-    ResourceDefinition() { definition_type = "resource"; }
-    // Properties: type, icon, color, description
-};
-
-class ChoiceDefinition : public Definition {
-public:
-    ChoiceDefinition() { definition_type = "choice"; }
-    // Properties: era, text, options
-};
-
-class EndingDefinition : public Definition {
-public:
-    EndingDefinition() { definition_type = "ending"; }
-    // Properties: type, text, requirements
-};
-
-class EventDefinition : public Definition {
-public:
-    EventDefinition() { definition_type = "event"; }
-    // Properties: era, trigger, text, effect, archivist
-};
-
-class SecretDefinition : public Definition {
-public:
-    SecretDefinition() { definition_type = "secret"; }
-    // Properties: trigger, activate, archivist
-};
-
-// ============================================================================
 // AST Root (entire file)
 // ============================================================================
 

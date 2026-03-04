@@ -94,33 +94,25 @@ bool Parser::is_definition_keyword(TokenType type) {
 
 std::unique_ptr<Definition> Parser::parse_definition() {
     TokenType type = current().type;
-    
+
+    // Map token type to definition type string
+    std::string type_name;
+
     switch (type) {
-        case TokenType::ERA:
-            return parse_era();
-        case TokenType::STRUCTURE:
-            return parse_structure();
-        case TokenType::UNIT:
-            return parse_unit();
-        case TokenType::TECHNOLOGY:
-            return parse_technology();
-        case TokenType::RESOURCE:
-            return parse_resource();
-        case TokenType::CHOICE:
-            return parse_choice();
-        case TokenType::ENDING:
-            return parse_ending();
-        case TokenType::EVENT:
-            return parse_event();
-        case TokenType::SECRET:
-            return parse_secret();
-        case TokenType::TERRAIN:
-            pos_++;  // Consume TERRAIN token
-            return parse_generic_definition("terrain");
+        case TokenType::ERA:         type_name = "era"; break;
+        case TokenType::STRUCTURE:   type_name = "structure"; break;
+        case TokenType::UNIT:        type_name = "unit"; break;
+        case TokenType::TECHNOLOGY:  type_name = "technology"; break;
+        case TokenType::RESOURCE:    type_name = "resource"; break;
+        case TokenType::CHOICE:      type_name = "choice"; break;
+        case TokenType::ENDING:      type_name = "ending"; break;
+        case TokenType::EVENT:       type_name = "event"; break;
+        case TokenType::SECRET:      type_name = "secret"; break;
+        case TokenType::TERRAIN:     type_name = "terrain"; break;
         case TokenType::IDENTIFIER: {
             // Support for custom definition types from schema
             auto& schema = SchemaRegistry::instance();
-            std::string type_name = current().lexeme;
+            type_name = current().lexeme;
             if (schema.is_valid_definition(type_name)) {
                 pos_++;  // Consume the identifier
                 return parse_generic_definition(type_name);
@@ -132,221 +124,9 @@ std::unique_ptr<Definition> Parser::parse_definition() {
             error("Expected definition keyword");
             return nullptr;
     }
-}
 
-std::unique_ptr<EraDefinition> Parser::parse_era() {
-    auto era = std::make_unique<EraDefinition>();
-    
-    consume(TokenType::ERA, "Expected 'era'");
-    
-    Token name = consume(TokenType::IDENTIFIER, "Expected era name");
-    era->identifier = name.lexeme;
-    
-    consume(TokenType::LEFT_BRACE, "Expected '{' after era name");
-    
-    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        if (is_condition_keyword(current().type)) {
-            auto cond = parse_condition();
-            if (cond) era->conditions.push_back(std::move(cond));
-        } else {
-            auto prop = parse_property();
-            if (prop) era->properties.push_back(std::move(prop));
-        }
-    }
-    
-    consume(TokenType::RIGHT_BRACE, "Expected '}' after era definition");
-    
-    return era;
-}
-
-std::unique_ptr<StructureDefinition> Parser::parse_structure() {
-    auto structure = std::make_unique<StructureDefinition>();
-    
-    consume(TokenType::STRUCTURE, "Expected 'structure'");
-    
-    Token name = consume(TokenType::IDENTIFIER, "Expected structure name");
-    structure->identifier = name.lexeme;
-    
-    consume(TokenType::LEFT_BRACE, "Expected '{' after structure name");
-    
-    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        if (is_condition_keyword(current().type)) {
-            auto cond = parse_condition();
-            if (cond) structure->conditions.push_back(std::move(cond));
-        } else {
-            auto prop = parse_property();
-            if (prop) structure->properties.push_back(std::move(prop));
-        }
-    }
-    
-    consume(TokenType::RIGHT_BRACE, "Expected '}' after structure definition");
-    
-    return structure;
-}
-
-std::unique_ptr<UnitDefinition> Parser::parse_unit() {
-    auto unit = std::make_unique<UnitDefinition>();
-    
-    consume(TokenType::UNIT, "Expected 'unit'");
-    
-    Token name = consume(TokenType::IDENTIFIER, "Expected unit name");
-    unit->identifier = name.lexeme;
-    
-    consume(TokenType::LEFT_BRACE, "Expected '{' after unit name");
-    
-    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        if (is_condition_keyword(current().type)) {
-            auto cond = parse_condition();
-            if (cond) unit->conditions.push_back(std::move(cond));
-        } else {
-            auto prop = parse_property();
-            if (prop) unit->properties.push_back(std::move(prop));
-        }
-    }
-    
-    consume(TokenType::RIGHT_BRACE, "Expected '}' after unit definition");
-    
-    return unit;
-}
-
-std::unique_ptr<TechnologyDefinition> Parser::parse_technology() {
-    auto tech = std::make_unique<TechnologyDefinition>();
-    
-    consume(TokenType::TECHNOLOGY, "Expected 'technology'");
-    
-    Token name = consume(TokenType::IDENTIFIER, "Expected technology name");
-    tech->identifier = name.lexeme;
-    
-    consume(TokenType::LEFT_BRACE, "Expected '{' after technology name");
-    
-    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        if (is_condition_keyword(current().type)) {
-            auto cond = parse_condition();
-            if (cond) tech->conditions.push_back(std::move(cond));
-        } else {
-            auto prop = parse_property();
-            if (prop) tech->properties.push_back(std::move(prop));
-        }
-    }
-    
-    consume(TokenType::RIGHT_BRACE, "Expected '}' after technology definition");
-    
-    return tech;
-}
-
-std::unique_ptr<ResourceDefinition> Parser::parse_resource() {
-    auto resource = std::make_unique<ResourceDefinition>();
-    
-    consume(TokenType::RESOURCE, "Expected 'resource'");
-    
-    Token name = consume(TokenType::IDENTIFIER, "Expected resource name");
-    resource->identifier = name.lexeme;
-    
-    consume(TokenType::LEFT_BRACE, "Expected '{' after resource name");
-    
-    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        auto prop = parse_property();
-        if (prop) resource->properties.push_back(std::move(prop));
-    }
-    
-    consume(TokenType::RIGHT_BRACE, "Expected '}' after resource definition");
-    
-    return resource;
-}
-
-std::unique_ptr<ChoiceDefinition> Parser::parse_choice() {
-    auto choice = std::make_unique<ChoiceDefinition>();
-    
-    consume(TokenType::CHOICE, "Expected 'choice'");
-    
-    Token name = consume(TokenType::IDENTIFIER, "Expected choice name");
-    choice->identifier = name.lexeme;
-    
-    consume(TokenType::LEFT_BRACE, "Expected '{' after choice name");
-    
-    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        if (is_condition_keyword(current().type)) {
-            auto cond = parse_condition();
-            if (cond) choice->conditions.push_back(std::move(cond));
-        } else {
-            auto prop = parse_property();
-            if (prop) choice->properties.push_back(std::move(prop));
-        }
-    }
-    
-    consume(TokenType::RIGHT_BRACE, "Expected '}' after choice definition");
-    
-    return choice;
-}
-
-std::unique_ptr<EndingDefinition> Parser::parse_ending() {
-    auto ending = std::make_unique<EndingDefinition>();
-    
-    consume(TokenType::ENDING, "Expected 'ending'");
-    
-    Token name = consume(TokenType::IDENTIFIER, "Expected ending name");
-    ending->identifier = name.lexeme;
-    
-    consume(TokenType::LEFT_BRACE, "Expected '{' after ending name");
-    
-    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        auto prop = parse_property();
-        if (prop) ending->properties.push_back(std::move(prop));
-    }
-    
-    consume(TokenType::RIGHT_BRACE, "Expected '}' after ending definition");
-    
-    return ending;
-}
-
-std::unique_ptr<EventDefinition> Parser::parse_event() {
-    auto event = std::make_unique<EventDefinition>();
-    
-    consume(TokenType::EVENT, "Expected 'event'");
-    
-    Token name = consume(TokenType::IDENTIFIER, "Expected event name");
-    event->identifier = name.lexeme;
-    
-    consume(TokenType::LEFT_BRACE, "Expected '{' after event name");
-    
-    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        if (is_condition_keyword(current().type)) {
-            auto cond = parse_condition();
-            if (cond) event->conditions.push_back(std::move(cond));
-        } else {
-            auto prop = parse_property();
-            if (prop) event->properties.push_back(std::move(prop));
-        }
-    }
-    
-    consume(TokenType::RIGHT_BRACE, "Expected '}' after event definition");
-    
-    return event;
-}
-
-std::unique_ptr<SecretDefinition> Parser::parse_secret() {
-    auto secret = std::make_unique<SecretDefinition>();
-    
-    consume(TokenType::SECRET, "Expected 'secret'");
-    
-    Token name = consume(TokenType::IDENTIFIER, "Expected secret name");
-    secret->identifier = name.lexeme;
-    
-    consume(TokenType::LEFT_BRACE, "Expected '{' after secret name");
-    
-    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        if (is_condition_keyword(current().type)) {
-            auto cond = parse_condition();
-            if (cond) secret->conditions.push_back(std::move(cond));
-        } else {
-            auto prop = parse_property();
-            if (prop) secret->properties.push_back(std::move(prop));
-        }
-    }
-    
-    consume(TokenType::RIGHT_BRACE, "Expected '}' after secret definition");
-    
-    return secret;
+    pos_++;  // Consume the keyword token
+    return parse_generic_definition(type_name);
 }
 
 // ============================================================================
