@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.3.3] - 2026-03-04
+
+### Changed
+- **Fully Agnostic Core** - Removed all Imperium hardcoding from compiler
+  - Removed 9 concrete definition classes (EraDefinition, StructureDefinition, etc.)
+  - Single generic `parse_definition()` instead of 9 duplicate methods
+  - Schema-driven validation (reads required props from SchemaRegistry)
+  - Schema-driven type checking (uses schema type_hints)
+  - Added `reference_type` to PropertySchema for cross-reference validation
+
+### Breaking Changes
+- Removed concrete AST classes - use generic `Definition` with `definition_type` field
+
+### Added
+- Test for custom RPG schema (character, item, quest)
+- `examples/test_rpg.lex` - demonstrates custom schema usage
+
+### Fixed
+- Centralized version macros in `src/lex/version.h`
+- Removed ~200 lines of dead code from json_backend
+
 ## [0.3.2] - 2026-03-03
 
 ### Added

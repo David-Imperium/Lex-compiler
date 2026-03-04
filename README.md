@@ -1,8 +1,8 @@
-﻿# Lex Compiler
+# Lex Compiler
 
 [![CI](https://github.com/David-Imperium/Lex-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/David-Imperium/Lex-compiler/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.3.2-blue.svg)](https://github.com/David-Imperium/Lex-compiler)
+[![Version](https://img.shields.io/badge/version-0.3.3-blue.svg)](https://github.com/David-Imperium/Lex-compiler)
 
 A declarative, multi-target transpiler for game content.
 
@@ -31,19 +31,19 @@ lexc input.lex -t lua,json
 lexc input.lex --types item,character,location -t json
 
 # Multiple outputs
-lexc input.lex -o output/ -t lua,json
+lexc input.lex -o output/ -t lua,json,godot,unity
 ```
 
 Options:
 - `-o, --output <dir>` — Output directory
-- `-t, --target <fmt>` — Output format(s): lua, json
+- `-t, --target <fmt>` — Output format(s): lua, json, godot, unity
 - `--types <list>` — Custom definition types (comma-separated)
 - `--no-validate` — Skip semantic validation
 - `-h, --help` — Show help
 
 ## Custom Schemas
 
-Lex is **agnostic** — define your own types:
+Lex is **fully agnostic** — define any types for any game:
 
 ```lex
 character Hero {
@@ -57,11 +57,16 @@ item Sword {
     damage: 50
     rarity: "legendary"
 }
+
+quest SaveVillage {
+    name: "Save the Village"
+    reward: { Gold: 500, XP: 100 }
+}
 ```
 
 Compile with:
 ```bash
-lexc game.lex --types character,item -t json
+lexc game.lex --types character,item,quest -t json
 ```
 
 Output:
@@ -84,30 +89,36 @@ Output:
       "damage": 50,
       "rarity": "legendary"
     }
+  },
+  "quests": {
+    "SaveVillage": {
+      "id": "SaveVillage",
+      "type": "quest",
+      "name": "Save the Village",
+      "reward": {"Gold": 500, "XP": 100}
+    }
   }
 }
 ```
 
-## Example
-
-Default schema (Imperium-style):
+## Example (Default Schema)
 
 ```lex
 structure SteamFactory {
     era: Steampunk
     name: "Steam Factory"
-    
+
     cost: {
         Coal: 8,
         Steel: 5,
         Gold: 50
     }
-    
+
     production: {
         Energy: 15,
         Industry: 10
     }
-    
+
     available_if has_technology(SteamEngine) {
     }
 }
@@ -116,7 +127,8 @@ structure SteamFactory {
 ## Features
 
 - **Declarative syntax** — Clean, readable definitions
-- **Multi-target** — Lua, JSON, Godot (GDScript), Unity (C#), and Love2D backends
+- **Fully agnostic** — Works with ANY schema, not just Imperium
+- **Multi-target** — Lua, JSON, Godot (GDScript), Unity (C#), Love2D backends
 - **Custom schemas** — Define your own types via `--types`
 - **Type-safe** — Strong typing with inference
 - **Semantic validation** — Catches errors before runtime
@@ -127,8 +139,8 @@ structure SteamFactory {
 
 | Version | Status | Features |
 |---------|--------|----------|
-| v0.3.1 | ✅ Current | Agnostic core, `--types` flag |
-| v0.4.0 | 🔜 Next | Binary releases, tutorials, expanded docs |
+| v0.3.3 | ✅ Current | Fully agnostic core, schema-driven validation |
+| v0.4.0 | 🔜 Next | Module system (import/use), binary releases |
 | v0.5.0 | 📋 Planned | TypeScript backend |
 
 See [ROADMAP.md](docs/ROADMAP.md) for details.
@@ -136,8 +148,8 @@ See [ROADMAP.md](docs/ROADMAP.md) for details.
 ## Testing
 
 ```bash
-# Unit tests
-.\build\tests\Debug\lexer_tests.exe
+# Unit tests (305 assertions)
+.\build\tests\Release\lexer_tests.exe
 
 # Lua output validation
 python tests/lua_validator.py output/game.lua
@@ -153,7 +165,7 @@ David (Imperium Game Engine)
 
 ---
 
-## 📚 Documentation Languages
+## Documentation Languages
 
 - **English** (current)
 - **[Italiano / Italian](README_IT.md)**
