@@ -156,6 +156,16 @@ public:
 };
 
 // ============================================================================
+// Visibility (module system)
+// ============================================================================
+
+enum class Visibility {
+    PUBLIC,     // Visible to everyone (modders + developer)
+    INTERNAL,   // Visible only to developer (Lex Engine/Core)
+    PRIVATE     // Visible only in current file
+};
+
+// ============================================================================
 // Definitions (top-level constructs)
 // ============================================================================
 
@@ -163,6 +173,7 @@ class Definition : public ASTNode {
 public:
     std::string identifier;  // The name of the definition
     std::string definition_type;  // "era", "structure", "unit", etc.
+    Visibility visibility = Visibility::PUBLIC;  // Default: public
     std::vector<std::unique_ptr<Property>> properties;
     std::vector<std::unique_ptr<Condition>> conditions;
 
@@ -180,11 +191,32 @@ public:
 };
 
 // ============================================================================
+// Module Declaration
+// ============================================================================
+
+class ModuleDeclaration : public ASTNode {
+public:
+    std::string name;  // e.g., "engine.internal", "game.public"
+};
+
+// ============================================================================
+// Use Statement (module import)
+// ============================================================================
+
+class UseStatement : public ASTNode {
+public:
+    std::string path;  // File path: "characters.lex"
+    std::string alias; // Optional alias (for future: use "file.lex" as alias)
+};
+
+// ============================================================================
 // AST Root (entire file)
 // ============================================================================
 
 class ASTFile : public ASTNode {
 public:
+    std::string module_name;  // e.g., "engine.internal", "game.public"
+    std::vector<std::unique_ptr<UseStatement>> imports;
     std::vector<std::unique_ptr<Definition>> definitions;
 };
 

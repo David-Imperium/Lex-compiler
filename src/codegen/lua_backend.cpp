@@ -288,6 +288,58 @@ std::string LuaBackend::generate_condition(const Condition* cond) {
     std::stringstream lua;
     lua << "        " << cond->trigger << " = ";
 
+    // If we have an actual expression, use it
+    if (cond->expression && cond->expression->type != Expression::Type::BOOLEAN) {
+        lua << "function(game_state) return "
+            << generate_expression(cond->expression.get(), true)
+            << " end,\n";
+        return lua.str();
+    }
+
+    // Check if this is a property-style condition (available_if: { technologies: [...] })
+    if (!cond->properties.empty()) {
+        // Build condition from properties
+        std::vector<std::string> checks;
+        
+        for (const auto& prop : cond->properties) {
+            if (prop->name == "technologies" && prop->value) {
+                // technologies: [TechA, TechB] -> has_technology("TechA") and has_technology("TechB")
+                if (prop->value->type == PropertyValue::Type::REFERENCE_LIST && 
+                    prop->value->reference_list) {
+                    for (const auto& tech : prop->value->reference_list->references) {
+                        checks.push_back("has_technology(\"" + tech + "\")");
+                    }
+                }
+            } else if (prop->name == "structures" && prop->value) {
+                // structures: [BuildingA] -> has_structure("BuildingA")
+                if (prop->value->type == PropertyValue::Type::REFERENCE_LIST && 
+                    prop->value->reference_list) {
+                    for (const auto& struct_id : prop->value->reference_list->references) {
+                        checks.push_back("has_structure(\"" + struct_id + "\")");
+                    }
+                }
+            } else if (prop->name == "resources" && prop->value) {
+                // resources: { gold: 50 } -> has_resources({gold = 50})
+                if (prop->value->type == PropertyValue::Type::RESOURCE_MAP && 
+                    prop->value->resource_map) {
+                    checks.push_back("has_resources(" + 
+                        generate_resource_map(*prop->value->resource_map) + ")");
+                }
+            }
+        }
+        
+        if (!checks.empty()) {
+            std::string condition_expr;
+            for (size_t i = 0; i < checks.size(); ++i) {
+                if (i > 0) condition_expr += " and ";
+                condition_expr += checks[i];
+            }
+            lua << "function(game_state) return " << condition_expr << " end,\n";
+            return lua.str();
+        }
+    }
+
+    // Fallback: use expression (might be placeholder true)
     if (cond->expression) {
         lua << "function(game_state) return "
             << generate_expression(cond->expression.get(), true)

@@ -1,78 +1,146 @@
-# Architettura del Sistema
+# Architettura Lex
 
-Lex è organizzato in tre layer.
+**Versione:** 0.3.2
 
-```
-┌─────────────────────────────────────┐
-│          Neural Layer               │  ← Agenti AI, generazione codice
-├─────────────────────────────────────┤
-│          Core Layer                 │  ← Parser, compilatore, validatore
-├─────────────────────────────────────┤
-│          Base Layer                 │  ← Lexer, AST, tipi
-└─────────────────────────────────────┘
-```
+---
 
-## Base Layer
-
-Componenti fondamentali:
-
-| Componente | Scopo |
-|------------|-------|
-| Lexer | Tokenizza il codice sorgente |
-| AST | Nodi Abstract Syntax Tree |
-| Types | Definizioni sistema tipi |
-| Diagnostics | Segnalazione errori |
+## Sistema a Layer
 
 ```
-src/base/
-├── lexer.cpp
-├── ast.cpp
-├── types.cpp
-└── diagnostics.cpp
+┌─────────────────────────────────────────────┐
+│                 Lex Neural                  │  Contesto AI, Generazione Lore
+├─────────────────────────────────────────────┤
+│                  Lex Core                   │  Validazione, Riferimenti incrociati
+├─────────────────────────────────────────────┤
+│                  Lex Base                   │  Lexer, Parser, AST
+└─────────────────────────────────────────────┘
 ```
 
-## Core Layer
+---
 
-Pipeline compilatore:
+## 1. Lex Base
 
-| Componente | Scopo |
-|------------|-------|
-| Parser | Costruisce AST da token |
-| Analizzatore Semantico | Type checking, risoluzione scope |
-| Validatore | Validazione schema |
-| Generatore Codice | Output backend |
+**Scopo:** Layer fondazione
+
+**Componenti:**
+- `Lexer` - Tokenizza il codice sorgente
+- `Parser` - Costruisce l'AST
+- `AST` - Albero della Sintassi Astratta
+- `SourceManager` - Gestione file/stringhe
+
+**Dipendenze:** Nessuna
+
+**Output:** AST
+
+---
+
+## 2. Lex Core
+
+**Scopo:** Layer contenuti di gioco
+
+**Componenti:**
+- `Validator` - Validazione semantica
+- `TypeChecker` - Inferenza dei tipi
+- `Schema` - Registro definizioni
+- `ReferenceResolver` - Risoluzione riferimenti incrociati
+
+**Dipendenze:** Lex Base
+
+**Output:** AST validato
+
+---
+
+## 3. Lex Neural
+
+**Scopo:** Layer integrazione AI
+
+**Componenti:**
+- `LoreGenerator` - Generazione contesto AI
+- `AIIntegration` - Interfaccia agenti
+- `ContextProvider` - Contesto LLM
+
+**Dipendenze:** Lex Core
+
+**Output:** Contesto leggibile da AI
+
+---
+
+## 4. Lex Engine (Privato)
+
+**Scopo:** Layer integrazione engine
+
+**Posizione:** `C:\Imperium 2.0\lex_engine\`
+
+**Componenti:**
+- `Runtime` - Interfaccia FFI
+- `EngineBridge` - Chiamate all'engine
+- `VerboseLogger` - Errori strutturati
+- `SchemaValidator` - Validazione specifica engine
+
+**Dipendenze:** Lex Core + Imperium Engine
+
+**Output:** Comandi engine / Input validato
+
+---
+
+## Struttura File
 
 ```
-src/core/
-├── parser.cpp
-├── semantic.cpp
-├── validator.cpp
-└── codegen.cpp
+C:\Lex\
+├── src/
+│   ├── lexer/          # Lex Base
+│   ├── parser/         # Lex Base
+│   ├── ast/            # Lex Base
+│   ├── semantic/       # Lex Core
+│   │   ├── validator.cpp
+│   │   ├── type_checker.cpp
+│   │   └── schema.cpp
+│   ├── codegen/        # Backend output
+│   │   ├── lua_backend.cpp
+│   │   ├── json_backend.cpp
+│   │   ├── godot_backend.cpp
+│   │   └── unity_backend.cpp
+│   └── lex.cpp          # API principale
+│
+└── docs/
+    └── spec/
+        ├── language.md
+        ├── validation.md
+        └── outputs.md
 ```
 
-## Neural Layer
-
-Funzionalità AI:
-
-| Componente | Scopo |
-|------------|-------|
-| AI Bridge | Comunicazione con agenti AI |
-| Auto-complete | Supporto IDE |
-| Refactoring | Trasformazioni codice |
-| Generation | Creazione codice assistita AI |
-
-```
-src/neural/
-├── ai_bridge.cpp
-├── autocomplete.cpp
-└── generator.cpp
-```
+---
 
 ## Flusso Dati
 
 ```
-Sorgente → Lexer → Token → Parser → AST → 
-Semantico → Validatore → CodeGen → Output
-                ↑
-          Schema Gioco
+file .lex
+    │
+    ▼ Lexer ──→ Token
+    │
+    ▼ Parser ──→ AST
+    │
+    ▼ Validator ──→ AST Validato
+    │
+    ▼ TypeChecker ──→ AST Tipizzato
+    │
+    ▼ Backend ──→ Output (Lua/JSON/Godot/Unity)
 ```
+
+---
+
+## Punti di Estensione
+
+### Aggiungere un Nuovo Backend
+
+1. Crea `src/codegen/xxx_backend.cpp`
+2. Eredita dall'interfaccia `Backend`
+3. Registra in `BackendFactory`
+4. Aggiungi alle opzioni CLI
+
+### Aggiungere una Nuova Keyword
+
+1. Aggiungi token in `lexer/keywords.h`
+2. Aggiungi regola grammaticale in `parser/grammar.cpp`
+3. Aggiungi validazione in `semantic/validator.cpp`
+4. Aggiorna `docs/spec/language.md`

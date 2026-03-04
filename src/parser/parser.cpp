@@ -93,6 +93,19 @@ bool Parser::is_definition_keyword(TokenType type) {
 // ============================================================================
 
 std::unique_ptr<Definition> Parser::parse_definition() {
+    // Parse optional visibility modifier
+    Visibility visibility = Visibility::PUBLIC;  // Default
+    if (check(TokenType::PUBLIC)) {
+        visibility = Visibility::PUBLIC;
+        pos_++;
+    } else if (check(TokenType::INTERNAL)) {
+        visibility = Visibility::INTERNAL;
+        pos_++;
+    } else if (check(TokenType::PRIVATE)) {
+        visibility = Visibility::PRIVATE;
+        pos_++;
+    }
+
     TokenType type = current().type;
 
     // Map token type to definition type string
@@ -115,7 +128,9 @@ std::unique_ptr<Definition> Parser::parse_definition() {
             type_name = current().lexeme;
             if (schema.is_valid_definition(type_name)) {
                 pos_++;  // Consume the identifier
-                return parse_generic_definition(type_name);
+                auto def = parse_generic_definition(type_name);
+                if (def) def->visibility = visibility;
+                return def;
             }
             error("Unknown definition type: " + type_name);
             return nullptr;
@@ -126,7 +141,9 @@ std::unique_ptr<Definition> Parser::parse_definition() {
     }
 
     pos_++;  // Consume the keyword token
-    return parse_generic_definition(type_name);
+    auto def = parse_generic_definition(type_name);
+    if (def) def->visibility = visibility;
+    return def;
 }
 
 // ============================================================================
@@ -802,12 +819,24 @@ std::unique_ptr<Condition> Parser::parse_condition() {
 std::unique_ptr<Definition> Parser::parse_generic_definition(const std::string& type_name) {
     auto def = std::make_unique<Definition>();
     def->definition_type = type_name;
-    
+
+    // Check for visibility modifier
+    if (check(TokenType::PUBLIC)) {
+        def->visibility = Visibility::PUBLIC;
+        pos_++;
+    } else if (check(TokenType::INTERNAL)) {
+        def->visibility = Visibility::INTERNAL;
+        pos_++;
+    } else if (check(TokenType::PRIVATE)) {
+        def->visibility = Visibility::PRIVATE;
+        pos_++;
+    }
+
     Token name = consume(TokenType::IDENTIFIER, "Expected definition name");
     def->identifier = name.lexeme;
-    
+
     consume(TokenType::LEFT_BRACE, "Expected '{' after definition name");
-    
+
     // Parse properties (same as any definition)
     while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
         if (is_condition_keyword(current().type)) {
@@ -820,10 +849,104 @@ std::unique_ptr<Definition> Parser::parse_generic_definition(const std::string& 
             }
         }
     }
-    
+
     consume(TokenType::RIGHT_BRACE, "Expected '}' after definition");
-    
+
     return def;
+}
+
+// ============================================================================
+// Module System Parsing
+// ============================================================================
+
+std::unique_ptr<UseStatement> Parser::parse_use_statement() {
+    auto stmt = std::make_unique<UseStatement>();
+
+    consume(TokenType::USE, "Expected 'use'");
+    Token path_token = consume(TokenType::STRING, "Expected file path string");
+    stmt->path = std::get<std::string>(path_token.value);
+
+    // Optional semicolon
+    if (check(TokenType::SEMICOLON)) {
+        pos_++;
+    }
+
+    return stmt;
+}
+
+std::unique_ptr<ModuleDeclaration> Parser::parse_module_declaration() {
+    auto decl = std::make_unique<ModuleDeclaration>();
+
+    consume(TokenType::MODULE, "Expected 'module'");
+    Token name_token = consume(TokenType::IDENTIFIER, "Expected module name");
+    decl->name = name_token.lexeme;
+
+    // Handle dotted names like "engine.internal" or "game.public"
+    while (check(TokenType::DOT)) {
+        pos_++;  // Consume dot
+        // Accept identifiers OR visibility keywords as module name parts
+        if (check(TokenType::IDENTIFIER)) {
+            decl->name += "." + current().lexeme;
+            pos_++;
+        } else if (check(TokenType::PUBLIC)) {
+            decl->name += ".public";
+            pos_++;
+        } else if (check(TokenType::INTERNAL)) {
+            decl->name += ".internal";
+            pos_++;
+        } else if (check(TokenType::PRIVATE)) {
+            decl->name += ".private";
+            pos_++;
+        } else {
+            error("Expected module name part");
+            break;
+        }
+    }
+
+    return decl;
+}
+
+// ============================================================================
+// Full File Parsing (with modules)
+// ============================================================================
+
+ASTFile Parser::parse_file() {
+    ASTFile file;
+
+    // Parse module declaration (optional, must be first)
+    if (check(TokenType::MODULE)) {
+        auto mod = parse_module_declaration();
+        if (mod) {
+            file.module_name = mod->name;
+        }
+    }
+
+    // Parse use statements (must come before definitions)
+    while (check(TokenType::USE)) {
+        auto use_stmt = parse_use_statement();
+        if (use_stmt) {
+            file.imports.push_back(std::move(use_stmt));
+        }
+    }
+
+    // Parse definitions
+    while (!check(TokenType::END_OF_FILE)) {
+        // Skip module/use if they appear in middle (error recovery)
+        if (check(TokenType::MODULE) || check(TokenType::USE)) {
+            error("Module and use statements must appear at the beginning of the file");
+            pos_++;
+            continue;
+        }
+
+        auto def = parse_definition();
+        if (def) {
+            file.definitions.push_back(std::move(def));
+        } else {
+            skip_to_next_definition();
+        }
+    }
+
+    return file;
 }
 
 } // namespace lex

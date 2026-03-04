@@ -31,6 +31,13 @@ enum class TokenType {
     SECRET,
     TERRAIN,
 
+    // Module System
+    USE,
+    MODULE,
+    PUBLIC,
+    INTERNAL,
+    PRIVATE,
+
     // Conditional Keywords
     WHEN,
     IF,

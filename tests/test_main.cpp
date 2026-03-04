@@ -9,6 +9,7 @@
 
 #include <regex>
 #include <string>
+#include <iostream>
 
 using namespace lex;
 
@@ -1059,6 +1060,74 @@ TEST_CASE("Agnostic Schema - Custom Types") {
 
         // Restore default schema
         schema.load_imperium_default();
+    }
+}
+
+TEST_CASE("Module System - Visibility") {
+    SECTION("public and internal keywords") {
+        Lexer lexer(R"(
+            public structure Hero { era: Ancient }
+            internal GameState { turn: 1 }
+            private helper Helper { value: 42 }
+        )");
+        auto tokens = lexer.tokenize();
+        REQUIRE(!lexer.has_errors());
+
+        // Check keywords are recognized
+        REQUIRE(tokens[0].type == TokenType::PUBLIC);
+        REQUIRE(tokens[1].type == TokenType::STRUCTURE);
+        REQUIRE(tokens[2].lexeme == "Hero");
+    }
+
+    SECTION("module declaration") {
+        Lexer lexer(R"(module engine.internal)");
+        auto tokens = lexer.tokenize();
+        REQUIRE(!lexer.has_errors());
+
+        REQUIRE(tokens[0].type == TokenType::MODULE);
+        REQUIRE(tokens[1].lexeme == "engine");
+        REQUIRE(tokens[2].type == TokenType::DOT);
+        REQUIRE(tokens[3].lexeme == "internal");
+    }
+
+    SECTION("use statement") {
+        Lexer lexer(R"(use "characters.lex")");
+        auto tokens = lexer.tokenize();
+        REQUIRE(!lexer.has_errors());
+
+        REQUIRE(tokens[0].type == TokenType::USE);
+        REQUIRE(tokens[1].type == TokenType::STRING);
+    }
+
+    SECTION("full file with modules") {
+        // Load schema first
+        auto& schema = SchemaRegistry::instance();
+        schema.load_imperium_default();
+
+        Lexer lexer(R"(
+            module game.public
+            use "items.lex"
+
+            public structure Hero { era: Ancient }
+        )");
+        auto tokens = lexer.tokenize();
+        REQUIRE(!lexer.has_errors());
+
+        Parser parser(tokens);
+        auto file = parser.parse_file();
+        if (parser.has_errors()) {
+            for (const auto& err : parser.errors()) {
+                std::cout << "Parser error: " << err << std::endl;
+            }
+        }
+        REQUIRE(!parser.has_errors());
+
+        REQUIRE(file.module_name == "game.public");
+        REQUIRE(file.imports.size() == 1);
+        REQUIRE(file.imports[0]->path == "items.lex");
+        REQUIRE(file.definitions.size() == 1);
+        REQUIRE(file.definitions[0]->identifier == "Hero");
+        REQUIRE(file.definitions[0]->visibility == Visibility::PUBLIC);
     }
 }
 

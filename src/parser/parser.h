@@ -12,6 +12,7 @@ public:
     explicit Parser(const std::vector<Token>& tokens);
 
     std::vector<std::unique_ptr<Definition>> parse();
+    ASTFile parse_file();  // New: returns full AST with imports + definitions
 
     bool has_errors() const { return !errors_.empty(); }
     const std::vector<std::string>& errors() const { return errors_; }
@@ -28,11 +29,11 @@ private:
     bool check(TokenType type);
     bool match(TokenType type);
     Token consume(TokenType type, const std::string& message);
-    
+
     // Error handling
     void error(const std::string& message);
     void skip_to_next_definition();
-    
+
     // Helpers
     bool is_definition_keyword(TokenType type);
     bool is_condition_keyword(TokenType type);
@@ -42,6 +43,10 @@ private:
     // Definition parsing
     std::unique_ptr<Definition> parse_definition();
     std::unique_ptr<Definition> parse_generic_definition(const std::string& type_name);
+
+    // Module system
+    std::unique_ptr<UseStatement> parse_use_statement();
+    std::unique_ptr<ModuleDeclaration> parse_module_declaration();
 
     // Property parsing
     std::unique_ptr<Property> parse_property();

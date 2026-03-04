@@ -1,45 +1,76 @@
 # Documentazione Lex
 
-Un linguaggio domain-specific per logica di gioco e scripting.
+**Versione:** 0.3.2
+**Stato:** Sviluppo Attivo
 
-## Panoramica
+---
 
-Lex è progettato per essere:
-- **Semplice**: Sintassi pulita ispirata ai linguaggi moderni
-- **Sicuro**: Validazione integrata che rileva errori prima del runtime
-- **Flessibile**: Multipli backend di output (Lua, JSON, Godot)
+## Cos'è Lex?
 
-## Documentazione
+Lex è un **transpiler dichiarativo e multi-target** per contenuti di gioco. Scrivi una volta, compila in più backend.
 
-### Specifica
-- [Riferimento Linguaggio](./spec/language.md) - Sintassi, tipi, keyword
-- [Regole di Validazione](./spec/validation.md) - Cosa controlla lex_engine
-- [Backend di Output](./spec/outputs.md) - Target di compilazione supportati
+```
+game.lex → Lua, JSON, Godot, Unity, Contesto AI
+```
 
-### Architettura
-- [Layer del Sistema](./architecture/layers.md) - Base, Core, Neural
+---
 
-### Integrazioni
-- [Imperium Engine](./integrations/imperium-engine.md) - Bridge FFI C++
+## Link Rapidi
 
-### Guide
-- [Iniziare](./guides/tutorial.md) - Tutorial rapido
+| Documento | Scopo |
+|-----------|-------|
+| [Specifica Linguaggio](./spec/language.md) | Sintassi, tipi, keyword |
+| [Regole Validazione](./spec/validation.md) | Cosa valida lex_engine |
+| [Backend Output](./spec/outputs.md) | Lua, JSON, Godot, Unity |
+| [Architettura](./architecture/layers.md) | Come è strutturato Lex |
+| [Tutorial](./guides/tutorial.md) | Come iniziare |
 
-## Esempio Rapido
+---
+
+## Panoramica Architettura
+
+```
+┌─────────────────────────────────────────────┐
+│                 Lex Neural                  │  Contesto AI, Lore
+├─────────────────────────────────────────────┤
+│                  Lex Core                   │  Validazione, riferimenti
+├─────────────────────────────────────────────┤
+│                  Lex Base                   │  Lexer, parser, AST
+└─────────────────────────────────────────────┘
+```
+
+---
+
+## Esempio in 30 Secondi
 
 ```lex
-fn main() {
-    let x: int = 42;
-    let nome: string = "Ciao";
-    
-    if x > 10 {
-        spawn("worker_unit", x, 0, 0);
-    }
+era Ancient {
+    name: "Ancient Era"
+}
+
+structure Farm {
+    era: Ancient
+    name: "Farm"
+    cost: { Gold: 50 }
+    production: { Food: 5 }
 }
 ```
 
-## Repository
+Compila in:
 
-- **Compilatore**: `src/` - Lexer, parser, generatore codice
-- **Engine Bridge**: `lex_engine/` - FFI per integrazione Imperium
-- **Test**: `tests/` - Suite di test
+```lua
+Buildings.Farm = {
+    era = "Ancient",
+    cost = { Gold = 50 },
+    production = { Food = 5 }
+}
+```
+
+---
+
+## Per Agenti AI
+
+- Usa **solo keyword inglesi** (`structure`, non `struttura`)
+- Leggi [spec/validation.md](./spec/validation.md) per i codici errore
+- Leggi [integrations/imperium-engine.md](./integrations/imperium-engine.md) per integrazione Engine
+- Tutte le definizioni sono dichiarative — descrivi il COSA, non il COME

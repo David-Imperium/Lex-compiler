@@ -1,78 +1,146 @@
-# System Architecture
+# Lex Architecture
 
-Lex is organized in three layers.
+**Version:** 0.3.2
 
-```
-┌─────────────────────────────────────┐
-│           Neural Layer              │  ← AI agents, code generation
-├─────────────────────────────────────┤
-│           Core Layer                │  ← Parser, compiler, validator
-├─────────────────────────────────────┤
-│           Base Layer                │  ← Lexer, AST, types
-└─────────────────────────────────────┘
-```
+---
 
-## Base Layer
-
-Foundation components:
-
-| Component | Purpose |
-|-----------|---------|
-| Lexer | Tokenizes source code |
-| AST | Abstract Syntax Tree nodes |
-| Types | Type system definitions |
-| Diagnostics | Error reporting |
+## Layer System
 
 ```
-src/base/
-├── lexer.cpp
-├── ast.cpp
-├── types.cpp
-└── diagnostics.cpp
+┌─────────────────────────────────────────────┐
+│                 Lex Neural                  │  AI Context, Lore Generation
+├─────────────────────────────────────────────┤
+│                  Lex Core                   │  Validation, Cross-references
+├─────────────────────────────────────────────┤
+│                  Lex Base                   │  Lexer, Parser, AST
+└─────────────────────────────────────────────┘
 ```
 
-## Core Layer
+---
 
-Compiler pipeline:
+## 1. Lex Base
 
-| Component | Purpose |
-|-----------|---------|
-| Parser | Builds AST from tokens |
-| Semantic Analyzer | Type checking, scope resolution |
-| Validator | Schema validation |
-| Code Generator | Backend output |
+**Purpose:** Foundation layer
+
+**Components:**
+- `Lexer` - Tokenizes source code
+- `Parser` - Builds AST
+- `AST` - Abstract Syntax Tree
+- `SourceManager` - File/string handling
+
+**Dependencies:** None
+
+**Output:** AST
+
+---
+
+## 2. Lex Core
+
+**Purpose:** Game content layer
+
+**Components:**
+- `Validator` - Semantic validation
+- `TypeChecker` - Type inference
+- `Schema` - Definition registry
+- `ReferenceResolver` - Cross-reference resolution
+
+**Dependencies:** Lex Base
+
+**Output:** Validated AST
+
+---
+
+## 3. Lex Neural
+
+**Purpose:** AI integration layer
+
+**Components:**
+- `LoreGenerator` - AI context generation
+- `AIIntegration` - Agent interface
+- `ContextProvider` - LLM context
+
+**Dependencies:** Lex Core
+
+**Output:** AI-readable context
+
+---
+
+## 4. Lex Engine (Private)
+
+**Purpose:** Engine integration layer
+
+**Location:** `C:\Imperium 2.0\lex_engine\`
+
+**Components:**
+- `Runtime` - FFI interface
+- `EngineBridge` - Engine calls
+- `VerboseLogger` - Structured errors
+- `SchemaValidator` - Engine-specific validation
+
+**Dependencies:** Lex Core + Imperium Engine
+
+**Output:** Engine commands / Validated input
+
+---
+
+## File Structure
 
 ```
-src/core/
-├── parser.cpp
-├── semantic.cpp
-├── validator.cpp
-└── codegen.cpp
+C:\Lex\
+├── src/
+│   ├── lexer/          # Lex Base
+│   ├── parser/         # Lex Base
+│   ├── ast/            # Lex Base
+│   ├── semantic/       # Lex Core
+│   │   ├── validator.cpp
+│   │   ├── type_checker.cpp
+│   │   └── schema.cpp
+│   ├── codegen/        # Output backends
+│   │   ├── lua_backend.cpp
+│   │   ├── json_backend.cpp
+│   │   ├── godot_backend.cpp
+│   │   └── unity_backend.cpp
+│   └── lex.cpp          # Main API
+│
+└── docs/
+    └── spec/
+        ├── language.md
+        ├── validation.md
+        └── outputs.md
 ```
 
-## Neural Layer
-
-AI-powered features:
-
-| Component | Purpose |
-|-----------|---------|
-| AI Bridge | Communication with AI agents |
-| Auto-complete | IDE support |
-| Refactoring | Code transformations |
-| Generation | AI-assisted code creation |
-
-```
-src/neural/
-├── ai_bridge.cpp
-├── autocomplete.cpp
-└── generator.cpp
-```
+---
 
 ## Data Flow
 
 ```
-Source → Lexer → Tokens → Parser → AST → 
-Semantic → Validator → CodeGen → Output
-                ↑
-         Game Schema
+.lex file
+    │
+    ▼ Lexer ──→ Tokens
+    │
+    ▼ Parser ──→ AST
+    │
+    ▼ Validator ──→ Validated AST
+    │
+    ▼ TypeChecker ──→ Typed AST
+    │
+    ▼ Backend ──→ Output (Lua/JSON/Godot/Unity)
 ```
+
+---
+
+## Extension Points
+
+### Adding a New Backend
+
+1. Create `src/codegen/xxx_backend.cpp`
+2. Inherit from `Backend` interface
+3. Register in `BackendFactory`
+4. Add to CLI options
+
+### Adding a New Keyword
+
+1. Add token in `lexer/keywords.h`
+2. Add grammar rule in `parser/grammar.cpp`
+3. Add validation in `semantic/validator.cpp`
+4. Update `docs/spec/language.md`

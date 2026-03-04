@@ -16,6 +16,13 @@ inline const std::map<std::string, TokenType> KEYWORDS = {
     {"era", TokenType::ERA},
     {"terrain", TokenType::TERRAIN},
 
+    // Module System
+    {"use", TokenType::USE},
+    {"module", TokenType::MODULE},
+    {"public", TokenType::PUBLIC},
+    {"internal", TokenType::INTERNAL},
+    {"private", TokenType::PRIVATE},
+
     // Narrative
     {"choice", TokenType::CHOICE},
     {"ending", TokenType::ENDING},
