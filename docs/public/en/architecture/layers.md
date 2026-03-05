@@ -1,6 +1,6 @@
 # Lex Architecture
 
-**Version:** 0.3.2
+**Version:** 0.4.0
 
 ---
 
@@ -55,13 +55,18 @@
 **Purpose:** AI integration layer
 
 **Components:**
-- `LoreGenerator` - AI context generation
-- `AIIntegration` - Agent interface
-- `ContextProvider` - LLM context
+- `AIContextGenerator` - Generate AI-ready context (JSON/Markdown/Minimal)
+- `QuerySystem` - Natural language queries on game data
+- `LoreGenerator` - Narrative content generation
 
 **Dependencies:** Lex Core
 
-**Output:** AI-readable context
+**Output:** AI-readable context (Markdown, JSON, Minimal)
+
+**New in v0.4.0:**
+- Three output formats for AI context
+- Query system for natural language search
+- Compact minimal format for LLM context windows
 
 ---
 
@@ -99,7 +104,9 @@ C:\Lex\
 │   │   ├── lua_backend.cpp
 │   │   ├── json_backend.cpp
 │   │   ├── godot_backend.cpp
-│   │   └── unity_backend.cpp
+│   │   ├── unity_backend.cpp
+│   │   ├── love2d_backend.cpp
+│   │   └── defold_backend.cpp
 │   └── lex.cpp          # Main API
 │
 └── docs/
@@ -124,7 +131,11 @@ C:\Lex\
     │
     ▼ TypeChecker ──→ Typed AST
     │
-    ▼ Backend ──→ Output (Lua/JSON/Godot/Unity)
+    ├─▶ Backend ──→ Output (Lua/JSON/Godot/Unity/Love2D/Defold)
+    │
+    └─▶ AIContextGenerator ──→ AI Context (Markdown/JSON/Minimal)
+                                   │
+                                   └─▶ QuerySystem ──→ Query Results
 ```
 
 ---

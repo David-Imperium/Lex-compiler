@@ -1,6 +1,6 @@
 # Lex Output Backends
 
-**Version:** 0.3.2
+**Version:** 0.4.0
 
 ---
 
@@ -10,12 +10,12 @@ Lex compiles `.lex` files to multiple output formats:
 
 | Backend | Output | Use Case |
 |---------|--------|----------|
-| **Lua** | `.lua` scripts | Love2D, game logic |
+| **Lua** | `.lua` scripts | Game logic, embedded scripts |
 | **JSON** | `.json` data | Data exchange, tools |
-| **Godot** | `.gd` resources | Godot Engine |
-| **Unity** | `.cs` classes | Unity Engine |
-| **React** | `.ts` types | Web UI |
-| **Lore** | `.md` context | AI companion |
+| **Godot** | `.gd` resources | Godot Engine 4.x |
+| **Unity** | `.cs` classes | Unity ScriptableObject |
+| **Love2D** | `.lua` modules | LÖVE2D framework |
+| **Defold** | `.go` + `.lua` | Defold game objects |
 
 ---
 
@@ -153,7 +153,7 @@ public class Farm : StructureData
 
 ---
 
-## 5. React Backend
+## 5. Love2D Backend
 
 ### Input
 ```lex
@@ -165,26 +165,87 @@ structure Farm {
 ```
 
 ### Output
-```typescript
-// types/structures.ts
-export interface Structure {
-  id: string;
-  era: string;
-  cost: Record<string, number>;
-  production: Record<string, number>;
+```lua
+-- data/structures/farm.lua
+local Farm = {
+    id = "Farm",
+    era = "Ancient",
+    cost = { Gold = 50 },
+    production = { Food = 5 }
 }
 
-export const Farm: Structure = {
-  id: "Farm",
-  era: "Ancient",
-  cost: { Gold: 50 },
-  production: { Food: 5 },
-};
+-- Hot reload support
+function Farm:reload()
+    local newData = love.files.load("data/structures/farm.lua")
+    for k, v in pairs(newData) do
+        self[k] = v
+    end
+end
+
+return Farm
 ```
+
+### Features
+- Hot reload support for development
+- Module-based organization
+- LÖVE2D event integration
 
 ---
 
-## 6. Lore Backend (AI Context)
+## 6. Defold Backend
+
+### Input
+```lex
+structure Farm {
+    era: Ancient
+    cost: { Gold: 50 }
+    production: { Food: 5 }
+}
+```
+
+### Output
+
+**farm.go** (Game Object):
+```lua
+-- game.objects/farm.go
+go.property("id", "Farm")
+go.property("era", "Ancient")
+go.property("cost", msg.url("#cost_data"))
+go.property("production", msg.url("#production_data"))
+```
+
+**farm.lua** (Script):
+```lua
+-- scripts/structures/farm.lua
+local M = {}
+
+M.data = {
+    id = "Farm",
+    era = "Ancient",
+    cost = { Gold = 50 },
+    production = { Food = 5 }
+}
+
+function M.init(self)
+    self.cost = M.data.cost
+    self.production = M.data.production
+end
+
+return M
+```
+
+### Features
+- Native Defold game objects
+- Collection factory integration
+- Property-based configuration
+
+---
+
+## 7. AI Context Generator
+
+**New in v0.4.0**
+
+The AI Context Generator creates structured context for AI agents from `.lex` files.
 
 ### Input
 ```lex
@@ -192,15 +253,20 @@ structure SteamFactory {
     era: Steampunk
     name: "Steam Factory"
     description: "Converts coal into energy"
-    
+
+    cost: { Coal: 8, Steel: 5, Gold: 50 }
+    production: { Energy: 15, Industry: 10 }
+
     lore: {
         quote: "Steam transforms iron into power"
-        ai_context: "CRITICAL: Essential for Steampunk era"
+        ai_hint: "Essential for Steampunk era energy production"
     }
 }
 ```
 
-### Output
+### Output Formats
+
+**Markdown**:
 ```markdown
 # Steam Factory (Building)
 
@@ -208,27 +274,57 @@ structure SteamFactory {
 - **Era:** Steampunk
 - **Description:** Converts coal into energy
 
-## Costs
-- Coal: 8
-- Steel: 5
-- Gold: 50
+## Resources
+| Input | Output |
+|-------|--------|
+| Coal: 8, Steel: 5, Gold: 50 | Energy: 15, Industry: 10 |
 
-## Production
-- Energy: +15
-- Industry: +10
-
-## AI Context
-**IMPORTANCE:** HIGH
-**RECOMMENDATION:** Build early in Steampunk era
-**PREREQUISITES:** SteamEngine technology
+## AI Hint
+> Essential for Steampunk era energy production
 
 ## Quote
 > "Steam transforms iron into power"
 ```
 
+**JSON**:
+```json
+{
+  "id": "SteamFactory",
+  "type": "structure",
+  "era": "Steampunk",
+  "description": "Converts coal into energy",
+  "cost": {"Coal": 8, "Steel": 5, "Gold": 50},
+  "production": {"Energy": 15, "Industry": 10},
+  "ai_context": {
+    "importance": "high",
+    "keywords": ["energy", "steampunk", "production"]
+  }
+}
+```
+
+**Minimal** (compact for LLM context):
+```
+SteamFactory:Steampunk|Coal:8,Steel:5,Gold:50|Energy:15,Industry:10|Essential for energy
+```
+
+### Query System
+
+Query the generated context with natural language:
+
+```bash
+# Find structures that produce energy
+lexc game.lex --query "structures producing energy"
+
+# Find all Steampunk era content
+lexc game.lex --query "era:Steampunk"
+
+# Find high-importance items for AI
+lexc game.lex --query "ai_importance:high"
+```
+
 ---
 
-## 7. Using Backends
+## 8. Using Backends
 
 ### CLI
 ```bash
@@ -240,9 +336,19 @@ lexc game.lex --target lua
 lexc game.lex --target json
 lexc game.lex --target godot
 lexc game.lex --target unity
+lexc game.lex --target love2d
+lexc game.lex --target defold
 
 # Multiple backends
 lexc game.lex --target lua,json,godot
+
+# Generate AI context
+lexc game.lex --ai-context markdown
+lexc game.lex --ai-context json
+lexc game.lex --ai-context minimal
+
+# Query AI context
+lexc game.lex --query "structures producing energy"
 ```
 
 ### Library
@@ -260,7 +366,7 @@ for (const auto& [target, output] : result.outputs) {
 
 ---
 
-## 8. Backend Configuration
+## 9. Backend Configuration
 
 Each backend can have custom configuration:
 

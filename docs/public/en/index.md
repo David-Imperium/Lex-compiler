@@ -10,7 +10,7 @@
 Lex is a **declarative, multi-target transpiler** for game content. Write once, compile to multiple backends.
 
 ```
-game.lex → Lua, JSON, Godot, Unity, AI Context
+game.lex → Lua, JSON, Godot, Unity, Love2D, Defold, AI Context
 ```
 
 ---
@@ -21,9 +21,11 @@ game.lex → Lua, JSON, Godot, Unity, AI Context
 |----------|---------|
 | [Language Spec](./spec/language.md) | Syntax, types, keywords |
 | [Validation Rules](./spec/validation.md) | What lex_engine validates |
-| [Output Backends](./spec/outputs.md) | Lua, JSON, Godot, Unity |
+| [Output Backends](./spec/outputs.md) | Lua, JSON, Godot, Unity, Love2D, Defold |
 | [Architecture](./architecture/layers.md) | How Lex is structured |
 | [Tutorial](./guides/tutorial.md) | Getting started |
+
+**New in v0.4.0:** [AI Context Generator](./spec/outputs.md#7-ai-context-generator) — Generate AI-ready context from .lex files
 
 ---
 

@@ -1,6 +1,6 @@
 # Regole di Validazione Lex
 
-**Versione:** 0.3.2
+**Versione:** 0.4.0
 
 Questo documento definisce TUTTE le regole di validazione che lex_engine deve applicare.
 

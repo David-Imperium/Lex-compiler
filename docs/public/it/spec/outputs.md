@@ -1,6 +1,6 @@
 # Backend di Output Lex
 
-**Versione:** 0.3.2
+**Versione:** 0.4.0
 
 ---
 
@@ -10,12 +10,12 @@ Lex compila i file `.lex` in molteplici formati di output:
 
 | Backend | Output | Caso d'uso |
 |---------|--------|------------|
-| **Lua** | script `.lua` | Love2D, logica di gioco |
+| **Lua** | script `.lua` | Logica di gioco, script embedded |
 | **JSON** | dati `.json` | Scambio dati, strumenti |
-| **Godot** | risorse `.gd` | Godot Engine |
-| **Unity** | classi `.cs` | Unity Engine |
-| **React** | tipi `.ts` | Web UI |
-| **Lore** | contesto `.md` | AI companion |
+| **Godot** | risorse `.gd` | Godot Engine 4.x |
+| **Unity** | classi `.cs` | Unity ScriptableObject |
+| **Love2D** | moduli `.lua` | Framework LÖVE2D |
+| **Defold** | `.go` + `.lua` | Game object Defold |
 
 ---
 
@@ -86,7 +86,7 @@ structure Farm {
     era: Ancient
     cost: { Gold: 50 }
     production: { Food: 5 }
-    
+
     ui: {
         icon: "res://assets/farm.png"
     }
@@ -135,15 +135,15 @@ public class Farm : StructureData
 {
     public override string Id => "Farm";
     public override string Era => "Ancient";
-    
+
     public Farm()
     {
-        Cost = new Dictionary<string, int>
+        Cost = new Dictionary&lt;string, int&gt;
         {
             { "Gold", 50 }
         };
-        
-        Production = new Dictionary<string, int>
+
+        Production = new Dictionary&lt;string, int&gt;
         {
             { "Food", 5 }
         };
@@ -153,7 +153,7 @@ public class Farm : StructureData
 
 ---
 
-## 5. Backend React
+## 5. Backend Love2D
 
 ### Input
 ```lex
@@ -165,26 +165,87 @@ structure Farm {
 ```
 
 ### Output
-```typescript
-// types/structures.ts
-export interface Structure {
-  id: string;
-  era: string;
-  cost: Record<string, number>;
-  production: Record<string, number>;
+```lua
+-- data/structures/farm.lua
+local Farm = {
+    id = "Farm",
+    era = "Ancient",
+    cost = { Gold = 50 },
+    production = { Food = 5 }
 }
 
-export const Farm: Structure = {
-  id: "Farm",
-  era: "Ancient",
-  cost: { Gold: 50 },
-  production: { Food: 5 },
-};
+-- Supporto hot reload
+function Farm:reload()
+    local newData = love.files.load("data/structures/farm.lua")
+    for k, v in pairs(newData) do
+        self[k] = v
+    end
+end
+
+return Farm
 ```
+
+### Funzionalità
+- Supporto hot reload per sviluppo
+- Organizzazione a moduli
+- Integrazione eventi LÖVE2D
 
 ---
 
-## 6. Backend Lore (Contesto AI)
+## 6. Backend Defold
+
+### Input
+```lex
+structure Farm {
+    era: Ancient
+    cost: { Gold: 50 }
+    production: { Food: 5 }
+}
+```
+
+### Output
+
+**farm.go** (Game Object):
+```lua
+-- game.objects/farm.go
+go.property("id", "Farm")
+go.property("era", "Ancient")
+go.property("cost", msg.url("#cost_data"))
+go.property("production", msg.url("#production_data"))
+```
+
+**farm.lua** (Script):
+```lua
+-- scripts/structures/farm.lua
+local M = {}
+
+M.data = {
+    id = "Farm",
+    era = "Ancient",
+    cost = { Gold = 50 },
+    production = { Food = 5 }
+}
+
+function M.init(self)
+    self.cost = M.data.cost
+    self.production = M.data.production
+end
+
+return M
+```
+
+### Funzionalità
+- Game object nativi Defold
+- Integrazione collection factory
+- Configurazione tramite proprietà
+
+---
+
+## 7. AI Context Generator
+
+**Nuovo in v0.4.0**
+
+L'AI Context Generator crea contesto strutturato per agenti AI dai file `.lex`.
 
 ### Input
 ```lex
@@ -192,43 +253,78 @@ structure SteamFactory {
     era: Steampunk
     name: "Steam Factory"
     description: "Converts coal into energy"
-    
+
+    cost: { Coal: 8, Steel: 5, Gold: 50 }
+    production: { Energy: 15, Industry: 10 }
+
     lore: {
         quote: "Steam transforms iron into power"
-        ai_context: "CRITICAL: Essential for Steampunk era"
+        ai_hint: "Essential for Steampunk era energy production"
     }
 }
 ```
 
-### Output
+### Formati Output
+
+**Markdown**:
 ```markdown
-# Steam Factory (Edificio)
+# Steam Factory (Building)
 
-## Info Base
+## Basic Info
 - **Era:** Steampunk
-- **Descrizione:** Converte carbone in energia
+- **Description:** Converts coal into energy
 
-## Costi
-- Coal: 8
-- Steel: 5
-- Gold: 50
+## Resources
+| Input | Output |
+|-------|--------|
+| Coal: 8, Steel: 5, Gold: 50 | Energy: 15, Industry: 10 |
 
-## Produzione
-- Energy: +15
-- Industry: +10
+## AI Hint
+> Essential for Steampunk era energy production
 
-## Contesto AI
-**IMPORTANZA:** ALTA
-**RACCOMANDAZIONE:** Costruisci all'inizio dell'era Steampunk
-**PREREQUISITI:** Tecnologia SteamEngine
-
-## Citazione
+## Quote
 > "Steam transforms iron into power"
+```
+
+**JSON**:
+```json
+{
+  "id": "SteamFactory",
+  "type": "structure",
+  "era": "Steampunk",
+  "description": "Converts coal into energy",
+  "cost": {"Coal": 8, "Steel": 5, "Gold": 50},
+  "production": {"Energy": 15, "Industry": 10},
+  "ai_context": {
+    "importance": "high",
+    "keywords": ["energy", "steampunk", "production"]
+  }
+}
+```
+
+**Minimal** (compatto per context window LLM):
+```
+SteamFactory:Steampunk|Coal:8,Steel:5,Gold:50|Energy:15,Industry:10|Essential for energy
+```
+
+### Query System
+
+Interroga il contesto generato con linguaggio naturale:
+
+```bash
+# Trova strutture che producono energia
+lexc game.lex --query "structures producing energy"
+
+# Trova tutto il contenuto era Steampunk
+lexc game.lex --query "era:Steampunk"
+
+# Trova elementi ad alta importanza AI
+lexc game.lex --query "ai_importance:high"
 ```
 
 ---
 
-## 7. Utilizzo Backend
+## 8. Utilizzo Backend
 
 ### CLI
 ```bash
@@ -240,9 +336,19 @@ lexc game.lex --target lua
 lexc game.lex --target json
 lexc game.lex --target godot
 lexc game.lex --target unity
+lexc game.lex --target love2d
+lexc game.lex --target defold
 
 # Backend multipli
 lexc game.lex --target lua,json,godot
+
+# Genera contesto AI
+lexc game.lex --ai-context markdown
+lexc game.lex --ai-context json
+lexc game.lex --ai-context minimal
+
+# Query contesto AI
+lexc game.lex --query "structures producing energy"
 ```
 
 ### Libreria
@@ -253,14 +359,14 @@ options.targets = { "lua", "json", "godot" };
 lex::CompileResult result = lex::compile(source, options);
 
 for (const auto& [target, output] : result.outputs) {
-    std::cout << "=== " << target << " ===\n";
-    std::cout << output << "\n";
+    std::cout &lt;&lt; "=== " &lt;&lt; target &lt;&lt; " ===\n";
+    std::cout &lt;&lt; output &lt;&lt; "\n";
 }
 ```
 
 ---
 
-## 8. Configurazione Backend
+## 9. Configurazione Backend
 
 Ogni backend può avere configurazione personalizzata:
 

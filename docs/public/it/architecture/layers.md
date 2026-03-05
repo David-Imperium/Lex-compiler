@@ -1,6 +1,6 @@
 # Architettura Lex
 
-**Versione:** 0.3.2
+**Versione:** 0.4.0
 
 ---
 
@@ -55,13 +55,18 @@
 **Scopo:** Layer integrazione AI
 
 **Componenti:**
-- `LoreGenerator` - Generazione contesto AI
-- `AIIntegration` - Interfaccia agenti
-- `ContextProvider` - Contesto LLM
+- `AIContextGenerator` - Genera contesto AI-ready (JSON/Markdown/Minimal)
+- `QuerySystem` - Query in linguaggio naturale sui dati di gioco
+- `LoreGenerator` - Generazione contenuti narrativi
 
 **Dipendenze:** Lex Core
 
-**Output:** Contesto leggibile da AI
+**Output:** Contesto leggibile da AI (Markdown, JSON, Minimal)
+
+**Nuovo in v0.4.0:**
+- Tre formati output per contesto AI
+- Sistema query per ricerca in linguaggio naturale
+- Formato minimal compatto per context window LLM
 
 ---
 
