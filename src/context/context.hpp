@@ -104,7 +104,7 @@ struct ContextResult {
     std::string error;
     
     // Schema info
-    std::string schema_version = "0.4.0";
+    std::string schema_version = "0.4.1";
     std::vector<std::string> types;
     
     // Analyzed data

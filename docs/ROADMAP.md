@@ -1,11 +1,29 @@
 # Lex Compiler Roadmap
 
-**Current Version:** 0.4.0  
+**Current Version:** 0.4.1  
 **License:** MIT (Free Tier Complete)
 
 ---
 
 ## Released Versions
+
+### v0.4.1 — Accessibility & Documentation (2026-03-05)
+
+**Status:** ✅ Released
+
+**New Features:**
+- Easy installation scripts (`install.ps1`, `install.sh`)
+- Unix man page (`docs/lexc.1`)
+- GitHub Pages website (`docs/index.html`)
+- Integration guides for Godot, Unity, LÖVE2D
+- Enhanced CLI help with examples
+- `-v/--version` flag
+
+**Bug Fixes:**
+- Fixed Godot backend: dynamic class names from filename
+- Fixed CLI: pass targets correctly to compile_file()
+
+---
 
 ### v0.4.0 — AI Context & Query System (2026-03-04)
 
