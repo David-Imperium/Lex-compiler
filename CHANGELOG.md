@@ -7,30 +7,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.4.0] - 2026-03-04
 
 ### Added
+- **AI Context Generator** — Generate structured context for AI agents
+  - JSON format for AI tools
+  - Markdown format for human-readable docs
+  - Minimal format for LLM prompts
+  - `--context json|md|minimal|all` CLI option
+
+- **Query System** — Natural language queries
+  - "What does X require?"
+  - "What unlocks X?"
+  - "Show all structures"
+  - "What produces Gold?"
+  - "What costs the most?"
+  - `--query "..."` CLI option
+
 - **Love2D Backend** — LÖVE2D framework code generation
   - Generates `GameData` module with helper functions
   - `love.filesystem` integration for hot reload
   - State serialization for save/load
-  - Condition helpers for game logic
 
 - **Defold Backend** — Defold engine code generation
   - Generates `M` module (Defold convention)
   - Collection factory URL integration
-  - `get_all()` and `get()` helper functions
-  - Type name converter for dynamic lookups
 
 ### Changed
-- **Free Tier Complete** — All 6 backends now available:
-  - Lua (generic)
-  - JSON (universal)
-  - GDScript (Godot 4.x)
-  - C# (Unity ScriptableObject)
-  - LÖVE2D (Love2D framework)
-  - Defold (Defold engine)
+- **Free Tier Complete** — All 6 backends available (MIT License):
+  - Lua, JSON, Godot, Unity, Love2D, Defold
 
-- **CLI Updated** — New target options:
-  - `-t love2d` or `-t love` for LÖVE2D
-  - `-t defold` for Defold engine
+- **325 test assertions** — Full coverage
 
 ## [0.3.4] - 2026-03-04
 
@@ -67,6 +71,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - Centralized version macros in `src/lex/version.h`
 - Removed ~200 lines of dead code from json_backend
+
+- Removed ~200 lines of dead code from json_backend
+- Removed duplicate `parse_definition()` method in favor of generic `Definition` approach
+- Schema-driven validation (reads required props from SchemaRegistry)
+- Schema-driven type checking (uses schema type hints)
+- Added `reference_type` to PropertySchema for cross-reference validation
 
 ## [0.3.2] - 2026-03-03
 
@@ -132,11 +142,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Catch2 test framework setup
 
 ---
-
-## Roadmap
-
-| Version | Target | Features |
-|---------|--------|----------|
-| 0.4.0 | TBD | Binary releases, expanded tutorials |
-| 0.5.0 | TBD | TypeScript backend |
-| 1.0.0 | TBD | Stable release, full documentation |

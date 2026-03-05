@@ -1,6 +1,6 @@
 # Documentazione Lex
 
-**Versione:** 0.3.2
+**Versione:** 0.4.0
 **Stato:** Sviluppo Attivo
 
 ---

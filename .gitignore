@@ -51,12 +51,17 @@ output/
 !tests/**/*.json
 
 # Internal (not for public release)
-.planning/
 .crush/
 .factory/
 AGENTS.md
 DROID.md
 nul
+
+# .planning/exploratory/ is NOW TRACKED (for backup)
+# Only ignore specific .planning subfolders:
+.planning/STATE.md
+.planning/INTERNAL_ROADMAP.md
+.planning/LEX_MASTER_DESIGN.md
 
 # Internal documentation
 docs/internal/
