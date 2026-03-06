@@ -2,10 +2,17 @@
 
 [![CI](https://github.com/David-Imperium/Lex-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/David-Imperium/Lex-compiler/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/David-Imperium/Lex-compiler)
+[![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)](https://github.com/David-Imperium/Lex-compiler)
+[![Live Demo](https://img.shields.io/badge/demo-live-green.svg)](https://david-imperium.github.io/Lex-compiler/)
 
 <p align="center">
-  <img src="docs/assets/lex_code_animation.webp" alt="Lex Compiler Animation" width="800"/>
+  <a href="https://david-imperium.github.io/Lex-compiler/">
+    <img src="https://img.shields.io/badge/Try%20Live%20Demo-%F0%9F%9A%80-brightgreen?style=for-the-badge" alt="Live Demo">
+  </a>
+</p>
+
+<p align="center">
+  <video src="docs/assets/lex_showcase.mp4" autoplay loop muted playsinline width="800"></video>
 </p>
 
 **Stop writing boilerplate. Start describing worlds.**
