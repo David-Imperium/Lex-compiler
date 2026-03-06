@@ -100,6 +100,7 @@ public:
     static std::unique_ptr<Expression> make_float(double val);
     static std::unique_ptr<Expression> make_string(const std::string& val);
     static std::unique_ptr<Expression> make_bool(bool val);
+    static std::unique_ptr<Expression> make_null();
     static std::unique_ptr<Expression> make_reference(const std::string& name);
     static std::unique_ptr<Expression> make_binary(BinaryOp op,
                                                     std::unique_ptr<Expression> left,

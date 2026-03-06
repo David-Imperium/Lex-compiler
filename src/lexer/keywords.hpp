@@ -2,7 +2,7 @@
 
 #include <map>
 #include <string>
-#include "token.h"
+#include "token.hpp"
 
 namespace lex {
 

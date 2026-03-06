@@ -1,12 +1,15 @@
 #pragma once
 
-#include "../ast/ast.h"
+#include "../ast/ast.hpp"
 #include <vector>
 #include <string>
 #include <unordered_map>
 #include <functional>
 
 namespace lex {
+
+// Forward declaration
+class SchemaRegistry;
 
 struct TypeError {
     std::string message;
@@ -16,6 +19,9 @@ struct TypeError {
 
 class TypeChecker {
 public:
+    // Constructor with optional schema registry (uses singleton if null)
+    explicit TypeChecker(const SchemaRegistry* schema = nullptr);
+
     // Check entire AST, returns true if no errors
     bool check(const std::vector<std::unique_ptr<Definition>>& definitions);
 
@@ -40,6 +46,7 @@ public:
 private:
     std::vector<TypeError> errors_;
     std::unordered_map<std::string, const Definition*> definitions_;
+    const SchemaRegistry* schema_;
 
     // Property type expectations per definition type
     std::unordered_map<std::string, LexType> expected_property_types_;

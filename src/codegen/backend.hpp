@@ -5,7 +5,7 @@
 #include <memory>
 #include <map>
 #include <functional>
-#include "../ast/ast.h"
+#include "../ast/ast.hpp"
 
 namespace lex {
 

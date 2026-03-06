@@ -5,9 +5,12 @@
 #include <memory>
 #include <map>
 #include <set>
-#include "../ast/ast.h"
+#include "../ast/ast.hpp"
 
 namespace lex {
+
+// Forward declaration
+class SchemaRegistry;
 
 enum class ErrorSeverity {
     ERROR,
@@ -24,6 +27,9 @@ public:
 
 class Validator {
 public:
+    // Constructor with optional schema registry (uses singleton if null)
+    explicit Validator(const SchemaRegistry* schema = nullptr);
+
     bool validate(const std::vector<std::unique_ptr<Definition>>& definitions);
 
     const std::vector<SemanticError>& errors() const { return errors_; }
@@ -34,6 +40,7 @@ public:
 private:
     std::vector<SemanticError> errors_;
     std::vector<SemanticError> warnings_;
+    const SchemaRegistry* schema_;
 
     // Symbol tables - dynamic by type
     std::map<std::string, std::set<std::string>> symbols_by_type_;
