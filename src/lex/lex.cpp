@@ -1,12 +1,12 @@
 #include "lex.hpp"
-#include "version.h"
+#include "version.hpp"
 #include "compiler/pipeline.hpp"
-#include "schema/schema.h"
+#include "schema/schema.hpp"
 #include "context/context.hpp"
-#include "lexer/lexer.h"
-#include "parser/parser.h"
-#include "parser/validator.h"
-#include "codegen/backend.h"
+#include "lexer/lexer.hpp"
+#include "parser/parser.hpp"
+#include "parser/validator.hpp"
+#include "codegen/backend.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -178,7 +178,8 @@ std::string resolve_import_path(const std::string& import_path, const std::strin
 // Load and parse a single file, returning ASTFile
 std::unique_ptr<ASTFile> load_single_file(
     const std::string& filepath,
-    std::vector<CompileError>& errors
+    std::vector<CompileError>& errors,
+    const SchemaRegistry* schema = nullptr
 ) {
     std::ifstream file(filepath);
     if (!file.is_open()) {
@@ -213,7 +214,7 @@ std::unique_ptr<ASTFile> load_single_file(
     }
 
     // Parse as full file (with modules)
-    Parser parser(tokens);
+    Parser parser(tokens, schema);
     auto ast_file = std::make_unique<ASTFile>(parser.parse_file());
     if (parser.has_errors()) {
         for (const auto& err : parser.errors()) {
@@ -259,7 +260,20 @@ CompileResult compile_modules(const std::string& entry_file, const CompileOption
         std::string canonical_path;
         try {
             canonical_path = fs::canonical(filepath).string();
+        } catch (const std::exception& e) {
+            // Log warning if verbose mode is enabled
+            if (options.verbose) {
+                result.warnings.push_back({
+                    .message = "Could not resolve canonical path for '" + filepath + "': " + e.what(),
+                    .location = filepath,
+                    .severity = CompileErrorSeverity::Warning,
+                    .code = "W002",
+                    .suggestion = "Using original path instead"
+                });
+            }
+            canonical_path = filepath;
         } catch (...) {
+            // Unknown exception - use original path
             canonical_path = filepath;
         }
 
@@ -269,7 +283,7 @@ CompileResult compile_modules(const std::string& entry_file, const CompileOption
         loaded_files.insert(canonical_path);
 
         // Load the file
-        auto ast_file = load_single_file(filepath, result.errors);
+        auto ast_file = load_single_file(filepath, result.errors, &schema);
         if (!ast_file) {
             return;
         }
@@ -333,7 +347,7 @@ CompileResult compile_modules(const std::string& entry_file, const CompileOption
     }
     // Validate merged definitions
     if (options.validate) {
-        Validator validator;
+        Validator validator(&schema);
         validator.validate(merged_definitions);
         if (validator.has_warnings()) {
             auto warns = convert_validation_errors(validator.warnings());
@@ -412,7 +426,7 @@ ContextResult generate_context_from_source(
     }
 
     // Parsing
-    Parser parser(tokens);
+    Parser parser(tokens, &schema);
     auto ast = parser.parse();
     if (parser.has_errors()) {
         ContextResult result;
