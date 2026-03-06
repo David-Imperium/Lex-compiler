@@ -4,11 +4,17 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-#include <set>
 #include <chrono>
 #include <thread>
 #include <map>
 #include <iomanip>
+#include <mutex>
+#include <future>
+#include <functional>
+#include <csignal>
+#include <atomic>
+
+#include <CLI/CLI.hpp>
 
 #include "../lex/lex.hpp"
 #include "../context/context.hpp"
@@ -16,62 +22,273 @@
 
 namespace fs = std::filesystem;
 
-// File modification times for watch mode
-std::map<std::string, std::filesystem::file_time_type> file_mtimes;
+// ============================================================================
+// Animated Spinner / Progress Bar
+// ============================================================================
 
-void print_usage(const char* program) {
-    std::cerr << "Lex Compiler v" << lex::version() << "\n";
-    std::cerr << "A declarative, multi-target transpiler for game content\n\n";
-    std::cerr << "Usage: " << program << " <input.lex> [options]\n\n";
-    std::cerr << "Options:\n";
-    std::cerr << "  -o, --output <dir>   Output directory (default: same as input)\n";
-    std::cerr << "  -t, --target <fmt>   Output format(s): lua, json, gd, cs, love2d, defold\n";
-    std::cerr << "                       Multiple: -t lua,json,gd\n";
-    std::cerr << "  --context <fmt>      Generate AI context: json, md, minimal, all\n";
-    std::cerr << "  --query <question>   Query game data (e.g., \"What does Farm require?\")\n";
-    std::cerr << "  --types <list>       Custom definition types (comma-separated)\n";
-    std::cerr << "                       Default: Imperium schema (era,structure,unit,technology,...)\n";
-    std::cerr << "  --mode <mode>        Visibility mode: modder (default) or developer\n";
-    std::cerr << "  --watch              Watch for file changes and recompile\n";
-    std::cerr << "  --no-validate        Skip semantic validation\n";
-    std::cerr << "  --verbose            Show detailed output\n";
-    std::cerr << "  -h, --help           Show this help\n";
-    std::cerr << "  -v, --version        Show version\n\n";
-    std::cerr << "Examples:\n";
-    std::cerr << "  # Basic compilation to Lua\n";
-    std::cerr << "  " << program << " game.lex -t lua\n\n";
-    std::cerr << "  # Multi-target output to specific directory\n";
-    std::cerr << "  " << program << " game.lex -o output/ -t lua,json,gd\n\n";
-    std::cerr << "  # Custom schema for RPG game\n";
-    std::cerr << "  " << program << " characters.lex --types character,item,quest -t json\n\n";
-    std::cerr << "  # Generate AI context for LLM integration\n";
-    std::cerr << "  " << program << " game.lex --context md -o docs/\n\n";
-    std::cerr << "  # Query your game data\n";
-    std::cerr << "  " << program << " game.lex --query \"What costs the most?\"\n\n";
-    std::cerr << "  # Watch mode for live development\n";
-    std::cerr << "  " << program << " game.lex -t lua --watch\n\n";
-    std::cerr << "Backends:\n";
-    std::cerr << "  lua      Generic Lua tables (any Lua game)\n";
-    std::cerr << "  json     Universal JSON (data interchange)\n";
-    std::cerr << "  gd       GDScript Resource (Godot 4.x)\n";
-    std::cerr << "  cs       C# ScriptableObject (Unity)\n";
-    std::cerr << "  love2d   LÖVE2D module\n";
-    std::cerr << "  defold   Defold module\n\n";
-    std::cerr << "Documentation: https://github.com/David-Imperium/Lex-compiler\n";
+class AnimatedSpinner {
+public:
+    enum Style { Dots, Braille, Arrow, Pulse, Earth, Moon, Clock, Bars };
+
+    AnimatedSpinner(const std::string& message = "", Style style = Style::Dots)
+        : message_(message), style_(style), running_(false), progress_(-1) {}
+
+    void set_progress(int percent) { progress_ = percent; }
+    void set_message(const std::string& msg) { message_ = msg; }
+
+    void start() {
+        running_ = true;
+        thread_ = std::thread(&AnimatedSpinner::animate, this);
+    }
+
+    void stop() {
+        running_ = false;
+        if (thread_.joinable()) thread_.join();
+        clear_line();
+    }
+
+    void success(const std::string& msg = "") {
+        stop();
+        std::cout << "\r\033[32m✓\033[0m " << (msg.empty() ? message_ : msg) << "\n";
+    }
+
+    void fail(const std::string& msg = "") {
+        stop();
+        std::cout << "\r\033[31m✗\033[0m " << (msg.empty() ? message_ : msg) << "\n";
+    }
+
+private:
+    std::string message_;
+    Style style_;
+    std::atomic<bool> running_;
+    std::atomic<int> progress_;
+    std::thread thread_;
+
+    const std::vector<std::vector<std::string>> frames_ = {
+        {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}, // Braille
+        {"◜", "◠", "◝", "◞", "◡", "◟"},                       // Dots
+        {"←", "↖", "↑", "↗", "→", "↘", "↓", "↙"},               // Arrow
+        {"◉", "◎", "●", "◎"},                                   // Pulse
+        {"🌍", "🌎", "🌏"},                                      // Earth
+        {"🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"},      // Moon
+        {"🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"}, // Clock
+        {"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"}                // Bars
+    };
+
+    void animate() {
+        const auto& frames = frames_[static_cast<int>(style_)];
+        size_t frame = 0;
+
+        // Hide cursor
+        std::cout << "\033[?25l";
+
+        while (running_) {
+            std::string output = "\r";
+
+            if (progress_ >= 0 && progress_ <= 100) {
+                // Progress bar mode
+                int filled = progress_ / 5;
+                output += "[";
+                output += std::string(filled, '█');
+                output += std::string(20 - filled, '░');
+                output += "] ";
+                output += std::to_string(progress_) + "% ";
+                output += message_;
+            } else {
+                // Spinner mode
+                output += "\033[36m" + frames[frame] + "\033[0m ";
+                output += message_;
+            }
+
+            std::cout << output << std::flush;
+            frame = (frame + 1) % frames.size();
+            std::this_thread::sleep_for(std::chrono::milliseconds(80));
+        }
+
+        // Show cursor
+        std::cout << "\033[?25h";
+    }
+
+    void clear_line() {
+        std::cout << "\r" << std::string(message_.size() + 50, ' ') << "\r" << std::flush;
+    }
+};
+
+// ============================================================================
+// Color utilities
+// ============================================================================
+
+namespace color {
+    constexpr const char* reset = "\033[0m";
+    constexpr const char* bold = "\033[1m";
+    constexpr const char* dim = "\033[2m";
+    constexpr const char* red = "\033[31m";
+    constexpr const char* green = "\033[32m";
+    constexpr const char* yellow = "\033[33m";
+    constexpr const char* blue = "\033[34m";
+    constexpr const char* magenta = "\033[35m";
+    constexpr const char* cyan = "\033[36m";
+    constexpr const char* white = "\033[37m";
+
+    inline std::string logo() {
+        return std::string(green) + bold + R"(
+    ╔═══════════════════════════════════╗
+    ║  " + cyan + "Lex" + green + " Compiler v" + white + "1.0.0" + green + "              ║
+    ║  Declarative Game Content        ║
+    ╚═══════════════════════════════════╝
+)" + reset;
+    }
 }
+
+// ============================================================================
+// File Watcher (cross-platform with efficient polling)
+// ============================================================================
+
+class FileWatcher {
+public:
+    using Callback = std::function<void(const std::string&)>;
+
+    FileWatcher(const std::vector<std::string>& files, Callback callback)
+        : files_(files), callback_(std::move(callback)), running_(true) {}
+
+    void start() {
+        // Record initial modification times
+        for (const auto& file : files_) {
+            try {
+                mtimes_[file] = fs::last_write_time(file);
+            } catch (...) {}
+        }
+        watch_thread_ = std::thread(&FileWatcher::watch_loop, this);
+    }
+
+    void stop() {
+        running_ = false;
+        if (watch_thread_.joinable()) {
+            watch_thread_.join();
+        }
+    }
+
+    ~FileWatcher() { stop(); }
+
+private:
+    std::vector<std::string> files_;
+    Callback callback_;
+    std::atomic<bool> running_;
+    std::thread watch_thread_;
+    std::map<std::string, fs::file_time_type> mtimes_;
+
+    void watch_loop() {
+        while (running_) {
+            check_changes();
+            // Poll every 200ms (more responsive than 500ms)
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        }
+    }
+
+    void check_changes() {
+        for (const auto& file : files_) {
+            try {
+                auto current_mtime = fs::last_write_time(file);
+                if (mtimes_[file] != current_mtime) {
+                    mtimes_[file] = current_mtime;
+                    callback_(file);
+                }
+            } catch (...) {}
+        }
+    }
+};
+
+// ============================================================================
+// Parallel Compilation
+// ============================================================================
+
+class ParallelCompiler {
+public:
+    ParallelCompiler(size_t max_threads = 0) {
+        max_threads_ = max_threads > 0 ? max_threads : 
+            std::max(1u, std::thread::hardware_concurrency());
+    }
+
+    std::vector<std::pair<std::string, bool>> compile_all(
+        const std::vector<std::string>& files,
+        const std::string& output_dir,
+        const std::vector<lex::Target>& targets,
+        const std::vector<std::string>& target_names,
+        const lex::CompileOptions& options) {
+
+        std::vector<std::pair<std::string, bool>> results;
+        std::vector<std::future<std::pair<std::string, bool>>> futures;
+
+        for (const auto& file : files) {
+            futures.push_back(std::async(std::launch::async, [=]() {
+                auto opts = options;
+                opts.source_name = file;
+                bool success = compile_single(file, output_dir, targets, target_names, opts);
+                return std::make_pair(file, success);
+            }));
+
+            // Limit concurrent tasks
+            if (futures.size() >= max_threads_) {
+                for (auto& f : futures) results.push_back(f.get());
+                futures.clear();
+            }
+        }
+
+        for (auto& f : futures) results.push_back(f.get());
+        return results;
+    }
+
+private:
+    size_t max_threads_;
+
+    static bool compile_single(
+        const std::string& input_file,
+        const std::string& output_dir,
+        const std::vector<lex::Target>& targets,
+        const std::vector<std::string>& target_names,
+        const lex::CompileOptions& options) {
+
+        lex::CompileResult result = lex::compile_file(input_file, options);
+        if (result.has_errors()) return false;
+
+        fs::path input_path(input_file);
+        std::string base_name = input_path.stem().string();
+
+        for (size_t i = 0; i < targets.size() && i < target_names.size(); ++i) {
+            std::string extension = lex::target_extension(target_names[i]);
+            fs::path output_path = fs::path(output_dir) / (base_name + extension);
+
+            try {
+                std::ofstream file(output_path);
+                if (!file.is_open()) return false;
+                file << (result.outputs.count(target_names[i]) ?
+                         result.outputs.at(target_names[i]) : "");
+            } catch (...) { return false; }
+        }
+        return true;
+    }
+};
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
 
 void write_file(const std::string& path, const std::string& content) {
     std::ofstream file(path);
-    if (!file.is_open()) {
-        throw std::runtime_error("Cannot write file: " + path);
-    }
+    if (!file.is_open()) throw std::runtime_error("Cannot write file: " + path);
     file << content;
 }
 
-// Collect all .lex files from path (file or directory)
+std::string get_timestamp() {
+    auto now = std::chrono::system_clock::now();
+    auto time = std::chrono::system_clock::to_time_t(now);
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&time), "%H:%M:%S");
+    return ss.str();
+}
+
 std::vector<std::string> collect_lex_files(const std::string& path) {
     std::vector<std::string> files;
-    
     if (fs::is_directory(path)) {
         for (const auto& entry : fs::directory_iterator(path)) {
             if (entry.path().extension() == ".lex") {
@@ -81,422 +298,355 @@ std::vector<std::string> collect_lex_files(const std::string& path) {
     } else if (fs::is_regular_file(path)) {
         files.push_back(path);
     }
-    
     return files;
 }
 
-// Check if any file has been modified
-bool check_file_changes(const std::vector<std::string>& files) {
-    bool changed = false;
-    
-    for (const auto& file : files) {
-        try {
-            auto current_mtime = fs::last_write_time(file);
-            
-            if (file_mtimes.find(file) == file_mtimes.end()) {
-                // First time seeing this file
-                file_mtimes[file] = current_mtime;
-            } else if (file_mtimes[file] != current_mtime) {
-                // File has been modified
-                file_mtimes[file] = current_mtime;
-                changed = true;
-            }
-        } catch (const fs::filesystem_error& e) {
-            // File might not exist yet, skip
-        }
+std::vector<lex::Target> parse_targets(const std::string& target_str) {
+    std::vector<lex::Target> targets;
+    std::stringstream ss(target_str);
+    std::string t;
+    while (std::getline(ss, t, ',')) {
+        if (t == "lua") targets.push_back(lex::Target::Lua);
+        else if (t == "json") targets.push_back(lex::Target::JSON);
+        else if (t == "gd" || t == "godot") targets.push_back(lex::Target::Godot);
+        else if (t == "cs" || t == "unity") targets.push_back(lex::Target::Unity);
+        else if (t == "love2d" || t == "love") targets.push_back(lex::Target::Love2D);
+        else if (t == "defold") targets.push_back(lex::Target::Defold);
     }
-    
-    return changed;
+    return targets;
 }
 
-// Compile a single file
-bool compile_file(const std::string& input_file, const std::string& output_dir,
-                  const std::vector<lex::Target>& targets,
-                  const std::vector<std::string>& target_names,
-                  const lex::CompileOptions& options) {
-    
-    lex::CompileResult result = lex::compile_file(input_file, options);
-    
-    // Show warnings
-    if (result.has_warnings()) {
-        std::cerr << "Warnings:\n";
-        for (const auto& warn : result.warnings) {
-            std::cerr << "  [" << warn.code << "] " << warn.message;
-            if (!warn.location.empty()) std::cerr << " at " << warn.location;
-            std::cerr << "\n";
-        }
+std::vector<std::string> parse_target_names(const std::string& target_str) {
+    std::vector<std::string> names;
+    std::stringstream ss(target_str);
+    std::string t;
+    while (std::getline(ss, t, ',')) {
+        t.erase(0, t.find_first_not_of(" \t"));
+        t.erase(t.find_last_not_of(" \t") + 1);
+        if (!t.empty()) names.push_back(t);
     }
-    
-    // Show errors
-    if (result.has_errors()) {
-        std::cerr << "Errors:\n";
-        for (const auto& err : result.errors) {
-            std::cerr << "  [" << err.code << "] " << err.message;
-            if (!err.location.empty()) std::cerr << " at " << err.location;
-            if (!err.suggestion.empty()) std::cerr << "\n    Suggestion: " << err.suggestion;
-            std::cerr << "\n";
-        }
-        return false;
-    }
-    
-    // Write output files
-    fs::path input_path(input_file);
-    std::string base_name = input_path.stem().string();
-    
-    for (size_t i = 0; i < targets.size() && i < target_names.size(); ++i) {
-        std::string extension = lex::target_extension(target_names[i]);
-        fs::path output_path = fs::path(output_dir) / (base_name + extension);
-        
-        try {
-            write_file(output_path.string(), result.outputs.count(target_names[i]) ? 
-                       result.outputs.at(target_names[i]) : "");
-            std::cout << "Generated: " << output_path.string() << "\n";
-        } catch (const std::exception& e) {
-            std::cerr << "Error: " << e.what() << "\n";
-            return false;
-        }
-    }
-    
-    return true;
+    return names;
 }
 
-// Get current timestamp for logging
-std::string get_timestamp() {
-    auto now = std::chrono::system_clock::now();
-    auto time = std::chrono::system_clock::to_time_t(now);
-    std::stringstream ss;
-    ss << std::put_time(std::localtime(&time), "%H:%M:%S");
-    return ss.str();
-}
+// ============================================================================
+// Watch Mode
+// ============================================================================
 
-// Watch mode - monitor files and recompile on changes
-int watch_mode(const std::string& input_path, const std::string& output_dir,
-               const std::vector<lex::Target>& targets,
-               const std::vector<std::string>& target_names,
-               lex::CompileOptions& options) {
-    
-    std::cout << "Lex Compiler v" << lex::version() << " - Watch Mode\n";
-    std::cout << "Watching: " << input_path << "\n";
-    std::cout << "Output: " << output_dir << "\n";
-    std::cout << "Press Ctrl+C to stop\n\n";
-    
-    // Collect files to watch
+int run_watch_mode(
+    const std::string& input_path,
+    const std::string& output_dir,
+    const std::vector<lex::Target>& targets,
+    const std::vector<std::string>& target_names,
+    lex::CompileOptions& options) {
+
+    std::cout << color::logo();
+    std::cout << color::cyan << "Watch Mode" << color::reset << "\n";
+    std::cout << "  Input:  " << input_path << "\n";
+    std::cout << "  Output: " << output_dir << "\n";
+    std::cout << color::dim << "Press Ctrl+C to stop" << color::reset << "\n\n";
+
     std::vector<std::string> files = collect_lex_files(input_path);
-    
     if (files.empty()) {
-        std::cerr << "Error: No .lex files found\n";
+        std::cerr << color::red << "✗ No .lex files found" << color::reset << "\n";
         return 1;
     }
-    
-    std::cout << "Monitoring " << files.size() << " file(s)\n\n";
-    
-    // Initial compilation
-    for (const auto& file : files) {
-        std::cout << "Compiling: " << file << "\n";
-        options.source_name = file;
-        if (!compile_file(file, output_dir, targets, target_names, options)) {
-            std::cerr << "Initial compilation failed for: " << file << "\n";
+
+    std::cout << "Monitoring " << files.size() << " file(s)...\n\n";
+
+    // Initial compilation with spinner
+    AnimatedSpinner spinner("Initial compilation...", AnimatedSpinner::Earth);
+    spinner.start();
+
+    ParallelCompiler compiler;
+    auto results = compiler.compile_all(files, output_dir, targets, target_names, options);
+
+    int errors = 0;
+    for (const auto& [file, ok] : results) {
+        if (!ok) errors++;
+    }
+
+    if (errors == 0) {
+        spinner.success("Compiled " + std::to_string(results.size()) + " files");
+    } else {
+        spinner.fail(std::to_string(errors) + " failed, " + std::to_string(results.size() - errors) + " ok");
+        for (const auto& [file, ok] : results) {
+            if (!ok) std::cout << color::red << "  ✗ " << file << color::reset << "\n";
         }
     }
-    
-    std::cout << "\nWatching for changes...\n";
-    
-    // Watch loop
-    while (true) {
-        // Check for changes
-        if (check_file_changes(files)) {
-            std::cout << "\n[" << get_timestamp() << "] Change detected\n";
-            
-            for (const auto& file : files) {
+
+    std::cout << "\n" << color::dim << "Watching for changes..." << color::reset << "\n";
+
+    // File watcher with animated callback
+    std::mutex output_mutex;
+    FileWatcher watcher(files, [&](const std::string& file) {
+        std::lock_guard<std::mutex> lock(output_mutex);
+        
+        AnimatedSpinner compile_spinner("Recompiling " + fs::path(file).filename().string(), AnimatedSpinner::Moon);
+        compile_spinner.start();
+
+        auto opts = options;
+        opts.source_name = file;
+        lex::CompileResult result = lex::compile_file(file, opts);
+
+        if (result.has_errors()) {
+            compile_spinner.fail("Compilation failed");
+            for (const auto& err : result.errors) {
+                std::cout << color::red << "  [" << err.code << "] " << err.message;
+                if (!err.location.empty()) std::cout << " at " << err.location;
+                std::cout << color::reset << "\n";
+            }
+        } else {
+            compile_spinner.success("Compiled");
+            fs::path input_path(file);
+            std::string base_name = input_path.stem().string();
+
+            for (const auto& [target_name, output] : result.outputs) {
+                fs::path output_path = fs::path(output_dir) / (base_name + lex::target_extension(target_name));
                 try {
-                    auto mtime = fs::last_write_time(file);
-                    if (file_mtimes[file] == mtime) continue; // Skip unchanged
-                    
-                    std::cout << "Recompiling: " << file << "\n";
-                    options.source_name = file;
-                    
-                    if (compile_file(file, output_dir, targets, target_names, options)) {
-                        std::cout << "Success: " << file << "\n";
-                    } else {
-                        std::cerr << "Failed: " << file << "\n";
-                    }
-                } catch (const fs::filesystem_error& e) {
-                    std::cerr << "Error accessing: " << file << "\n";
+                    write_file(output_path.string(), output);
+                    std::cout << color::green << "  → " << color::reset << output_path.string() << "\n";
+                } catch (const std::exception& e) {
+                    std::cout << color::red << "  ✗ " << e.what() << color::reset << "\n";
                 }
             }
-            
-            std::cout << "Watching for changes...\n";
         }
-        
-        // Sleep to avoid busy waiting
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
-    
+        std::cout << color::dim << "\nWatching..." << color::reset << "\n";
+    });
+
+    watcher.start();
+
+    // Handle Ctrl+C
+    std::signal(SIGINT, [](int) {
+        std::cout << "\n" << color::yellow << "Stopping watch mode..." << color::reset << "\n";
+        std::exit(0);
+    });
+
+    while (true) std::this_thread::sleep_for(std::chrono::hours(1));
     return 0;
 }
 
+// ============================================================================
+// Main Entry Point with CLI11
+// ============================================================================
+
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        print_usage(argv[0]);
-        return 1;
-    }
+    CLI::App app{"Lex Compiler - Declarative multi-target transpiler for game content", "lexc"};
 
     std::string input_file;
+    app.add_option("input", input_file, "Input .lex file or directory")
+       ->required()
+       ->check(CLI::ExistingPath);
+
     std::string output_dir;
+    app.add_option("-o,--output", output_dir, "Output directory");
+
     std::string target_str = "lua";
+    app.add_option("-t,--target", target_str,
+        "Output format(s): lua,json,gd,cs,love2d,defold");
+
+    std::string context_str;
+    app.add_option("--context", context_str, "Generate AI context: json,md,minimal,all");
+
+    std::string query_str;
+    app.add_option("--query", query_str, "Query game data in natural language");
+
     std::string types_str;
+    app.add_option("--types", types_str, "Custom definition types (comma-separated)");
+
     std::string mode_str = "modder";
-    std::string context_str;  // AI context format
-    std::string query_str;    // Query string
-    bool validate = true;
+    app.add_option("--mode", mode_str, "Visibility mode: modder or developer");
+
+    bool watch_mode = false;
+    app.add_flag("--watch", watch_mode, "Watch for file changes and recompile");
+
+    bool no_validate = false;
+    app.add_flag("--no-validate", no_validate, "Skip semantic validation");
+
     bool verbose = false;
-    bool watch_mode_enabled = false;
+    app.add_flag("--verbose", verbose, "Show detailed output");
 
-    // Parse arguments
-    for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        if (arg == "-h" || arg == "--help") {
-            print_usage(argv[0]);
-            return 0;
-        } else if (arg == "-v" || arg == "--version") {
-            std::cout << "Lex Compiler v" << lex::version() << "\n";
-            return 0;
-        } else if (arg == "-o" || arg == "--output") {
-            if (i + 1 >= argc) {
-                std::cerr << "Error: --output requires a directory\n";
-                return 1;
-            }
-            output_dir = argv[++i];
-        } else if (arg == "-t" || arg == "--target") {
-            if (i + 1 >= argc) {
-                std::cerr << "Error: --target requires a format\n";
-                return 1;
-            }
-            target_str = argv[++i];
-        } else if (arg == "--context") {
-            if (i + 1 >= argc) {
-                std::cerr << "Error: --context requires a format (json, md, minimal, all)\n";
-                return 1;
-            }
-            context_str = argv[++i];
-        } else if (arg == "--query") {
-            if (i + 1 >= argc) {
-                std::cerr << "Error: --query requires a question\n";
-                return 1;
-            }
-            query_str = argv[++i];
-        } else if (arg == "--types") {
-            if (i + 1 >= argc) {
-                std::cerr << "Error: --types requires a list\n";
-                return 1;
-            }
-            types_str = argv[++i];
-        } else if (arg == "--mode") {
-            if (i + 1 >= argc) {
-                std::cerr << "Error: --mode requires modder or developer\n";
-                return 1;
-            }
-            mode_str = argv[++i];
-        } else if (arg == "--watch") {
-            watch_mode_enabled = true;
-        } else if (arg == "--no-validate") {
-            validate = false;
-        } else if (arg == "--verbose") {
-            verbose = true;
-        } else if (arg[0] != '-') {
-            input_file = arg;
-        } else {
-            std::cerr << "Unknown option: " << arg << "\n";
-            return 1;
-        }
+    bool show_version = false;
+    app.add_flag("-v,--version", show_version, "Show version");
+
+    CLI11_PARSE(app, argc, argv);
+
+    // Show version with animated logo
+    if (show_version) {
+        std::cout << color::logo();
+        return 0;
     }
 
-    if (input_file.empty()) {
-        std::cerr << "Error: No input file specified\n";
-        return 1;
-    }
-
-    // Default output dir to input file's directory
     if (output_dir.empty()) {
         output_dir = fs::path(input_file).parent_path().string();
         if (output_dir.empty()) output_dir = ".";
     }
 
-    // Configure compilation options
     lex::CompileOptions options;
-    options.validate = validate;
+    options.validate = !no_validate;
     options.verbose = verbose;
     options.source_name = input_file;
+    options.allow_internal = (mode_str == "developer" || mode_str == "dev");
 
-    // Set mode (visibility filtering)
-    if (mode_str == "developer" || mode_str == "dev") {
-        options.allow_internal = true;
-    } else if (mode_str == "modder") {
-        options.allow_internal = false;
-    } else {
-        std::cerr << "Error: --mode must be 'modder' or 'developer'\n";
-        return 1;
-    }
-
-    // Parse types
     if (!types_str.empty()) {
         std::stringstream ss(types_str);
         std::string type;
         while (std::getline(ss, type, ',')) {
             type.erase(0, type.find_first_not_of(" \t"));
             type.erase(type.find_last_not_of(" \t") + 1);
-            if (!type.empty()) {
-                options.types.push_back(type);
-            }
+            if (!type.empty()) options.types.push_back(type);
         }
     }
 
-    // Parse targets
-    std::vector<std::string> target_names;
-    std::vector<lex::Target> targets;
-    {
-        std::stringstream ts(target_str);
-        std::string t;
-        while (std::getline(ts, t, ',')) {
-            t.erase(0, t.find_first_not_of(" \t"));
-            t.erase(t.find_last_not_of(" \t") + 1);
-            if (!t.empty()) {
-                target_names.push_back(t);
-                if (t == "lua") targets.push_back(lex::Target::Lua);
-                else if (t == "json") targets.push_back(lex::Target::JSON);
-                else if (t == "gd" || t == "godot") targets.push_back(lex::Target::Godot);
-                else if (t == "cs" || t == "unity" || t == "csharp") targets.push_back(lex::Target::Unity);
-                else if (t == "love2d" || t == "love") targets.push_back(lex::Target::Love2D);
-                else if (t == "defold") targets.push_back(lex::Target::Defold);
-            }
-        }
-    }
-
-    // Set targets in options
+    std::vector<std::string> target_names = parse_target_names(target_str);
+    std::vector<lex::Target> targets = parse_targets(target_str);
     options.targets = targets;
 
-    // Watch mode
-    if (watch_mode_enabled) {
-        return watch_mode(input_file, output_dir, targets, target_names, options);
+    if (watch_mode) {
+        return run_watch_mode(input_file, output_dir, targets, target_names, options);
     }
 
-    // Single compilation
+    std::vector<std::string> files = collect_lex_files(input_file);
+    if (files.empty()) {
+        std::cerr << color::red << "✗ No .lex files found" << color::reset << "\n";
+        return 1;
+    }
+
+    // Parallel compilation for multiple files
+    if (files.size() > 1) {
+        std::cout << color::cyan << "Compiling " << files.size() << " files..." << color::reset << "\n\n";
+
+        AnimatedSpinner spinner("Parallel compilation...", AnimatedSpinner::Braille);
+        spinner.start();
+
+        ParallelCompiler compiler;
+        auto results = compiler.compile_all(files, output_dir, targets, target_names, options);
+
+        int errors = 0;
+        int success = 0;
+        for (const auto& [file, ok] : results) {
+            if (!ok) errors++;
+            else success++;
+        }
+
+        if (errors == 0) {
+            spinner.success("Compiled " + std::to_string(success) + " files successfully");
+            if (verbose) {
+                for (const auto& [file, ok] : results) {
+                    std::cout << color::dim << "  " << file << color::reset << "\n";
+                }
+            }
+        } else {
+            spinner.fail(std::to_string(errors) + " file(s) failed, " + std::to_string(success) + " succeeded");
+            for (const auto& [file, ok] : results) {
+                if (!ok) {
+                    std::cout << color::red << "  ✗ " << file << color::reset << "\n";
+                }
+            }
+        }
+        return errors > 0 ? 1 : 0;
+    }
+
+    // Single file compilation with animation
+    AnimatedSpinner spinner("Compiling " + input_file, AnimatedSpinner::Braille);
+    spinner.start();
+
     lex::CompileResult result = lex::compile_file(input_file, options);
 
-    // Show warnings
     if (result.has_warnings()) {
-        std::cerr << "Warnings:\n";
+        spinner.stop();
+        std::cout << "\n";
         for (const auto& warn : result.warnings) {
-            std::cerr << "  [" << warn.code << "] " << warn.message;
-            if (!warn.location.empty()) std::cerr << " at " << warn.location;
-            std::cerr << "\n";
+            std::cout << color::yellow << "  ⚠ " << warn.message;
+            if (!warn.location.empty()) std::cout << " at " << warn.location;
+            std::cout << color::reset << "\n";
         }
+        spinner.start();
     }
 
-    // Show errors
     if (result.has_errors()) {
-        std::cerr << "Errors:\n";
+        spinner.fail("Compilation failed");
+        std::cout << "\n";
         for (const auto& err : result.errors) {
-            std::cerr << "  [" << err.code << "] " << err.message;
-            if (!err.location.empty()) std::cerr << " at " << err.location;
-            if (!err.suggestion.empty()) std::cerr << "\n    Suggestion: " << err.suggestion;
-            std::cerr << "\n";
+            std::cout << color::red << "  [" << err.code << "] " << err.message;
+            if (!err.location.empty()) std::cout << " at " << err.location;
+            if (!err.suggestion.empty()) std::cout << "\n    " << color::cyan << "💡 " << err.suggestion << color::reset;
+            std::cout << "\n";
         }
         return 1;
     }
 
-    // Write output files
+    spinner.success("Compiled successfully");
+
     fs::path input_path(input_file);
     std::string base_name = input_path.stem().string();
 
     for (const auto& [target_name, output] : result.outputs) {
-        std::string extension = lex::target_extension(target_name);
-        fs::path output_path = fs::path(output_dir) / (base_name + extension);
-
+        fs::path output_path = fs::path(output_dir) / (base_name + lex::target_extension(target_name));
         try {
             write_file(output_path.string(), output);
-            std::cout << "Generated: " << output_path.string() << "\n";
+            std::cout << color::green << "  → " << color::reset << output_path.string() << "\n";
         } catch (const std::exception& e) {
-            std::cerr << "Error: " << e.what() << "\n";
+            std::cout << color::red << "  ✗ " << e.what() << color::reset << "\n";
             return 1;
         }
     }
 
-    // Generate AI context if requested
     if (!context_str.empty()) {
-        lex::ContextOptions ctx_options;
-        ctx_options.include_graph = true;
-        ctx_options.include_statistics = true;
-        ctx_options.include_summaries = true;
+        AnimatedSpinner ctx_spinner("Generating AI context...", AnimatedSpinner::Moon);
+        ctx_spinner.start();
 
-        auto ctx_result = lex::generate_context_from_file(input_file, ctx_options);
-        
+        lex::ContextOptions ctx_opts;
+        ctx_opts.include_graph = true;
+        ctx_opts.include_statistics = true;
+        ctx_opts.include_summaries = true;
+
+        auto ctx_result = lex::generate_context_from_file(input_file, ctx_opts);
         if (!ctx_result.success) {
-            std::cerr << "Error generating context: " << ctx_result.error << "\n";
+            ctx_spinner.fail("Context generation failed: " + ctx_result.error);
             return 1;
         }
 
-        // Helper to write context file
-        auto write_context = [&](lex::ContextFormat format) {
-            std::string output;
-            std::string ext = lex::context_extension(format);
-            
-            switch (format) {
-                case lex::ContextFormat::JSON:
-                    output = lex::format_context_json(ctx_result, ctx_options);
-                    break;
-                case lex::ContextFormat::Markdown:
-                    output = lex::format_context_markdown(ctx_result, ctx_options);
-                    break;
-                case lex::ContextFormat::Minimal:
-                    output = lex::format_context_minimal(ctx_result, ctx_options);
-                    break;
+        auto write_context = [&](lex::ContextFormat fmt) {
+            std::string ext = lex::context_extension(fmt);
+            std::string out;
+            switch (fmt) {
+                case lex::ContextFormat::JSON: out = lex::format_context_json(ctx_result, ctx_opts); break;
+                case lex::ContextFormat::Markdown: out = lex::format_context_markdown(ctx_result, ctx_opts); break;
+                case lex::ContextFormat::Minimal: out = lex::format_context_minimal(ctx_result, ctx_opts); break;
             }
-            
-            fs::path output_path = fs::path(output_dir) / (base_name + ext);
-            write_file(output_path.string(), output);
-            std::cout << "Generated: " << output_path.string() << "\n";
+            fs::path p = fs::path(output_dir) / (base_name + ext);
+            write_file(p.string(), out);
+            std::cout << color::green << "  → " << color::reset << p.string() << "\n";
         };
 
-        // Generate requested format(s)
-        if (context_str == "json") {
-            write_context(lex::ContextFormat::JSON);
-        } else if (context_str == "md" || context_str == "markdown") {
-            write_context(lex::ContextFormat::Markdown);
-        } else if (context_str == "minimal" || context_str == "txt") {
-            write_context(lex::ContextFormat::Minimal);
-        } else if (context_str == "all") {
+        if (context_str == "json") write_context(lex::ContextFormat::JSON);
+        else if (context_str == "md") write_context(lex::ContextFormat::Markdown);
+        else if (context_str == "minimal") write_context(lex::ContextFormat::Minimal);
+        else if (context_str == "all") {
             write_context(lex::ContextFormat::JSON);
             write_context(lex::ContextFormat::Markdown);
             write_context(lex::ContextFormat::Minimal);
-        } else {
-            std::cerr << "Error: --context must be json, md, minimal, or all\n";
-            return 1;
         }
+
+        ctx_spinner.success("Context generated");
     }
 
-    // Execute query if requested
     if (!query_str.empty()) {
-        lex::ContextOptions ctx_options;
-        ctx_options.include_graph = true;
-        ctx_options.include_statistics = true;
-        ctx_options.include_summaries = true;
+        AnimatedSpinner query_spinner("Querying...", AnimatedSpinner::Clock);
+        query_spinner.start();
 
-        auto query_result = lex::query_file(input_file, query_str, ctx_options);
-        
-        if (!query_result.success) {
-            std::cerr << "Error: " << query_result.error << "\n";
+        lex::ContextOptions ctx_opts;
+        ctx_opts.include_graph = true;
+        auto qr = lex::query_file(input_file, query_str, ctx_opts);
+
+        if (!qr.success) {
+            query_spinner.fail(qr.error);
             return 1;
         }
-        
-        std::cout << query_result.answer << "\n";
-        return 0;
-    }
 
-    if (verbose) {
-        std::cerr << "Compilation successful\n";
-        std::cerr << "  Targets: " << target_names.size() << "\n";
-        std::cerr << "  Warnings: " << result.warnings.size() << "\n";
+        query_spinner.stop();
+        std::cout << "\n" << color::cyan << "Answer:" << color::reset << " " << qr.answer << "\n";
+        return 0;
     }
 
     return 0;
