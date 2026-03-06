@@ -6,10 +6,22 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ============================================================================
-# Dependencies (via vcpkg)
+# Dependencies
 # ============================================================================
 
-find_package(CLI11 CONFIG REQUIRED)
+# Try vcpkg first, then FetchContent as fallback
+find_package(CLI11 CONFIG QUIET)
+
+if(NOT CLI11_FOUND)
+    message(STATUS "CLI11 not found via vcpkg, using FetchContent")
+    include(FetchContent)
+    FetchContent_Declare(
+        CLI11
+        GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+        GIT_TAG v2.4.2
+    )
+    FetchContent_MakeAvailable(CLI11)
+endif()
 
 # ============================================================================
 # Lex Library
