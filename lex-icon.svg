@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="lex-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f2fe"/>
+      <stop offset="100%" stop-color="#b122e5"/>
+    </linearGradient>
+  </defs>
+  <!-- Letter L stylized -->
+  <path d="M6 4h6v18h10v6H6V4z" fill="url(#lex-gradient)"/>
+  <!-- Transformation arrow (output) -->
+  <path d="M22 12l6 4-6 4v-3h-4v-2h4v-3z" fill="#00f2fe" opacity="0.8"/>
+  <!-- Code brackets accent -->
+  <path d="M24 22h2v2h-2v-2z M24 26h2v2h-2v-2z M26 24h2v2h-2v-2z" fill="#b122e5" opacity="0.6"/>
+</svg>
