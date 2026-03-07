@@ -23,6 +23,11 @@ private:
     // Collection generators
     std::string generate_resource_map(const ResourceMap& map);
     std::string generate_reference_list(const ReferenceList& list);
+    
+    // Nested value generators
+    std::string generate_object_value(const ObjectValue& obj);
+    std::string generate_array_value(const ArrayValue& arr);
+    std::string generate_property_value_nested(const PropertyValue& pv);
 };
 
 } // namespace lex

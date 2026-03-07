@@ -23,6 +23,8 @@ enum class LexType {
     REFERENCE,      // Reference to another definition (e.g., era name)
     RESOURCE_MAP,   // { Gold: 50, Wood: 20 }
     REFERENCE_LIST, // [TechA, TechB]
+    OBJECT,         // { key: value, ... } - nested object
+    ARRAY,          // [value1, value2, ...] - array of values
     COLOR,          // #RRGGBB
     VOID            // No type (for statements)
 };
@@ -128,18 +130,53 @@ public:
     std::vector<std::string> references;
 };
 
+// Forward declaration for PropertyValue (needed by ObjectValue)
+class PropertyValue;
+
+// ObjectValue - nested object with properties
+// Example: stats: { attack: 10, defense: 5 }
+class ObjectValue : public ASTNode {
+public:
+    // Store as vector of name-value pairs to preserve order
+    std::vector<std::pair<std::string, std::unique_ptr<PropertyValue>>> properties;
+    
+    // Helper methods
+    const PropertyValue* get(const std::string& name) const;
+    bool has(const std::string& name) const;
+    
+    std::unique_ptr<ObjectValue> clone() const;
+};
+
+// ArrayValue - array of values
+// Example: tags: ["warrior", "melee"]
+class ArrayValue : public ASTNode {
+public:
+    std::vector<std::unique_ptr<PropertyValue>> values;
+    
+    std::unique_ptr<ArrayValue> clone() const;
+};
+
 // ============================================================================
 // Properties (key-value pairs in definitions)
 // ============================================================================
 
+// Property name for objects (key-value pair within an object)
+class PropertyName : public ASTNode {
+public:
+    std::string name;
+    std::unique_ptr<PropertyValue> value;
+};
+
 class PropertyValue : public ASTNode {
 public:
-    enum class Type { EXPRESSION, RESOURCE_MAP, REFERENCE_LIST };
+    enum class Type { EXPRESSION, RESOURCE_MAP, REFERENCE_LIST, OBJECT, ARRAY };
     Type type = Type::EXPRESSION;
 
     std::unique_ptr<Expression> expression;
     std::unique_ptr<ResourceMap> resource_map;
     std::unique_ptr<ReferenceList> reference_list;
+    std::unique_ptr<ObjectValue> object;
+    std::unique_ptr<ArrayValue> array;
 
     std::unique_ptr<PropertyValue> clone() const;
 };

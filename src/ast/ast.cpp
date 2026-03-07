@@ -6,6 +6,26 @@ namespace lex {
 // Property Clone Methods
 // ============================================================================
 
+std::unique_ptr<ObjectValue> ObjectValue::clone() const {
+    auto cloned = std::make_unique<ObjectValue>();
+    for (const auto& [name, value] : properties) {
+        if (value) {
+            cloned->properties.push_back({name, value->clone()});
+        }
+    }
+    return cloned;
+}
+
+std::unique_ptr<ArrayValue> ArrayValue::clone() const {
+    auto cloned = std::make_unique<ArrayValue>();
+    for (const auto& val : values) {
+        if (val) {
+            cloned->values.push_back(val->clone());
+        }
+    }
+    return cloned;
+}
+
 std::unique_ptr<PropertyValue> PropertyValue::clone() const {
     auto cloned = std::make_unique<PropertyValue>();
     cloned->type = type;
@@ -22,6 +42,12 @@ std::unique_ptr<PropertyValue> PropertyValue::clone() const {
         auto new_list = std::make_unique<ReferenceList>();
         new_list->references = reference_list->references;
         cloned->reference_list = std::move(new_list);
+    }
+    if (object) {
+        cloned->object = object->clone();
+    }
+    if (array) {
+        cloned->array = array->clone();
     }
 
     return cloned;
@@ -50,6 +76,8 @@ std::string type_to_string(LexType type) {
         case LexType::REFERENCE: return "reference";
         case LexType::RESOURCE_MAP: return "resource_map";
         case LexType::REFERENCE_LIST: return "reference_list";
+        case LexType::OBJECT: return "object";
+        case LexType::ARRAY: return "array";
         case LexType::COLOR: return "color";
         case LexType::VOID: return "void";
         default: return "unknown";

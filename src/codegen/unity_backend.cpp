@@ -63,6 +63,10 @@ std::string UnityBackend::csharp_type(const Property& prop) const {
             return "ResourceCost";
         case PropertyValue::Type::REFERENCE_LIST:
             return "string[]";
+        case PropertyValue::Type::OBJECT:
+            return "Dictionary<string, object>";
+        case PropertyValue::Type::ARRAY:
+            return "object[]";
         default:
             return "object";
     }
@@ -231,6 +235,10 @@ std::string UnityBackend::generate_property_value(const Property& prop) {
             return "new ResourceCost()";  // Would need individual field assignment
         case PropertyValue::Type::REFERENCE_LIST:
             return "new string[] {}";
+        case PropertyValue::Type::OBJECT:
+            return "new Dictionary<string, object>()";
+        case PropertyValue::Type::ARRAY:
+            return "new object[] {}";
         default:
             return "null";
     }

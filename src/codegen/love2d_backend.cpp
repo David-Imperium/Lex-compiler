@@ -196,6 +196,18 @@ std::string Love2DBackend::generate_property_value(const Property& prop) {
             }
             return "{}";
 
+        case PropertyValue::Type::OBJECT:
+            if (prop.value->object) {
+                return generate_object_value(*prop.value->object);
+            }
+            return "{}";
+
+        case PropertyValue::Type::ARRAY:
+            if (prop.value->array) {
+                return generate_array_value(*prop.value->array);
+            }
+            return "{}";
+
         default:
             return "nil";
     }
@@ -223,6 +235,69 @@ std::string Love2DBackend::generate_reference_list(const ReferenceList& list) {
     }
     lua += "}";
     return lua;
+}
+
+std::string Love2DBackend::generate_object_value(const ObjectValue& obj) {
+    std::string lua = "{";
+    bool first = true;
+    for (const auto& [name, value] : obj.properties) {
+        if (!value) continue;
+        if (!first) lua += ", ";
+        lua += name + " = " + generate_property_value_nested(*value);
+        first = false;
+    }
+    lua += "}";
+    return lua;
+}
+
+std::string Love2DBackend::generate_array_value(const ArrayValue& arr) {
+    std::string lua = "{";
+    bool first = true;
+    for (const auto& val : arr.values) {
+        if (!val) continue;
+        if (!first) lua += ", ";
+        lua += generate_property_value_nested(*val);
+        first = false;
+    }
+    lua += "}";
+    return lua;
+}
+
+std::string Love2DBackend::generate_property_value_nested(const PropertyValue& pv) {
+    switch (pv.type) {
+        case PropertyValue::Type::EXPRESSION:
+            if (pv.expression) {
+                return generate_expression(pv.expression.get());
+            }
+            return "nil";
+
+        case PropertyValue::Type::RESOURCE_MAP:
+            if (pv.resource_map) {
+                return generate_resource_map(*pv.resource_map);
+            }
+            return "{}";
+
+        case PropertyValue::Type::REFERENCE_LIST:
+            if (pv.reference_list) {
+                return generate_reference_list(*pv.reference_list);
+            }
+            return "{}";
+
+        case PropertyValue::Type::OBJECT:
+            if (pv.object) {
+                return generate_object_value(*pv.object);
+            }
+            return "{}";
+
+        case PropertyValue::Type::ARRAY:
+            if (pv.array) {
+                return generate_array_value(*pv.array);
+            }
+            return "{}";
+
+        default:
+            return "nil";
+    }
 }
 
 // ============================================================================

@@ -219,6 +219,96 @@ std::string GodotBackend::generate_property_value(const Property& prop) {
             }
             return "[]";
 
+        case PropertyValue::Type::OBJECT:
+            if (prop.value->object) {
+                return generate_object_value(*prop.value->object);
+            }
+            return "{}";
+
+        case PropertyValue::Type::ARRAY:
+            if (prop.value->array) {
+                return generate_array_value(*prop.value->array);
+            }
+            return "[]";
+
+        default:
+            return "null";
+    }
+}
+
+std::string GodotBackend::generate_object_value(const ObjectValue& obj) {
+    std::string result = "{";
+    bool first = true;
+    for (const auto& [name, value] : obj.properties) {
+        if (!value) continue;
+        if (!first) result += ", ";
+        result += "\"" + name + "\": " + generate_property_value_nested(*value);
+        first = false;
+    }
+    result += "}";
+    return result;
+}
+
+std::string GodotBackend::generate_array_value(const ArrayValue& arr) {
+    std::string result = "[";
+    bool first = true;
+    for (const auto& val : arr.values) {
+        if (!val) continue;
+        if (!first) result += ", ";
+        result += generate_property_value_nested(*val);
+        first = false;
+    }
+    result += "]";
+    return result;
+}
+
+std::string GodotBackend::generate_property_value_nested(const PropertyValue& pv) {
+    switch (pv.type) {
+        case PropertyValue::Type::EXPRESSION:
+            if (pv.expression) {
+                switch (pv.expression->type) {
+                    case Expression::Type::STRING:
+                        return "\"" + escape_string(std::get<std::string>(pv.expression->value)) + "\"";
+                    case Expression::Type::INTEGER:
+                        return std::to_string(std::get<int64_t>(pv.expression->value));
+                    case Expression::Type::FLOAT:
+                        return std::to_string(std::get<double>(pv.expression->value));
+                    case Expression::Type::BOOLEAN:
+                        return std::get<bool>(pv.expression->value) ? "true" : "false";
+                    case Expression::Type::REFERENCE:
+                        return "\"" + pv.expression->reference + "\"";
+                    case Expression::Type::COLOR:
+                        return "\"" + std::get<std::string>(pv.expression->value) + "\"";
+                    default:
+                        return "\"(expr)\"";
+                }
+            }
+            return "null";
+
+        case PropertyValue::Type::RESOURCE_MAP:
+            if (pv.resource_map) {
+                return generate_resource_map(*pv.resource_map);
+            }
+            return "{}";
+
+        case PropertyValue::Type::REFERENCE_LIST:
+            if (pv.reference_list) {
+                return generate_reference_list(*pv.reference_list);
+            }
+            return "[]";
+
+        case PropertyValue::Type::OBJECT:
+            if (pv.object) {
+                return generate_object_value(*pv.object);
+            }
+            return "{}";
+
+        case PropertyValue::Type::ARRAY:
+            if (pv.array) {
+                return generate_array_value(*pv.array);
+            }
+            return "[]";
+
         default:
             return "null";
     }

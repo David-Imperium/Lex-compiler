@@ -346,16 +346,19 @@ std::unique_ptr<PropertyValue> Parser::parse_bracket_value() {
     if (check(TokenType::RIGHT_BRACKET)) {
         // Empty list
         pos_++;
-        value->type = PropertyValue::Type::REFERENCE_LIST;
-        value->reference_list = std::make_unique<ReferenceList>();
+        value->type = PropertyValue::Type::ARRAY;
+        value->array = std::make_unique<ArrayValue>();
         return value;
     }
     
     // Peek ahead to determine type
     // Resource map: [Identifier x Number, ...]
-    // Reference list: [Identifier, Identifier, ...]
+    // Reference list: [Identifier, Identifier, ...] or ["String", ...]
+    // Array: [Number, Object, ...] (mixed values)
     
     bool is_resource_map = false;
+    bool is_reference_list = true;
+    
     if (check(TokenType::IDENTIFIER)) {
         // Look ahead for 'x' pattern (Resource x Quantity)
         size_t lookahead = pos_ + 1;
@@ -366,16 +369,39 @@ std::unique_ptr<PropertyValue> Parser::parse_bracket_value() {
             // Check if it's the 'x' pattern
             if (tokens_[lookahead].lexeme == "x" || tokens_[lookahead].type == TokenType::STAR) {
                 is_resource_map = true;
+                is_reference_list = false;
             }
         }
+        // If just identifier followed by comma or bracket, it's a reference list
+    } else if (check(TokenType::STRING)) {
+        // String values are reference lists
+        is_reference_list = true;
+    } else {
+        // Not identifier or string - must be array
+        is_reference_list = false;
     }
     
     if (is_resource_map) {
         value->type = PropertyValue::Type::RESOURCE_MAP;
         value->resource_map = parse_resource_map_content();
-    } else {
+    } else if (is_reference_list) {
         value->type = PropertyValue::Type::REFERENCE_LIST;
         value->reference_list = parse_reference_list_content();
+    } else {
+        // Parse as ArrayValue
+        value->type = PropertyValue::Type::ARRAY;
+        auto arr = std::make_unique<ArrayValue>();
+        
+        while (!check(TokenType::RIGHT_BRACKET) && !check(TokenType::END_OF_FILE)) {
+            auto elem = parse_property_value();
+            arr->values.push_back(std::move(elem));
+            
+            if (check(TokenType::COMMA)) {
+                pos_++;
+            }
+        }
+        
+        value->array = std::move(arr);
     }
     
     consume(TokenType::RIGHT_BRACKET, "Expected ']'");
@@ -385,108 +411,142 @@ std::unique_ptr<PropertyValue> Parser::parse_bracket_value() {
 
 std::unique_ptr<PropertyValue> Parser::parse_brace_value() {
     auto value = std::make_unique<PropertyValue>();
-    value->type = PropertyValue::Type::RESOURCE_MAP;
     
     consume(TokenType::LEFT_BRACE, "Expected '{'");
     
-    auto map = std::make_unique<ResourceMap>();
+    // Peek ahead to determine if this is a ResourceMap or ObjectValue
+    // ResourceMap: { Key: Integer, ... } (simple integer values only)
+    // ObjectValue: { Key: Value, ... } (any value type)
     
-    // Parse: Resource: Quantity, Resource: Quantity, ...
-    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        if (!check(TokenType::IDENTIFIER)) {
-            error("Expected resource name");
-            pos_++;  // Skip bad token to avoid infinite loop
-            break;
-        }
-        
-        std::string resource = current().lexeme;
-        pos_++;
-        
-        // Expect colon
-        if (!check(TokenType::COLON)) {
-            error("Expected ':' after resource name");
-            pos_++;
-            break;
-        }
-        pos_++;  // Skip colon
-        
-        // Expect value - could be integer, string, expression, or nested structure
-        if (check(TokenType::INTEGER)) {
-            // Check if this is a simple integer or start of an expression
-            size_t lookahead = pos_ + 1;
-            if (lookahead < tokens_.size() &&
-                (tokens_[lookahead].type == TokenType::PLUS ||
-                 tokens_[lookahead].type == TokenType::MINUS ||
-                 tokens_[lookahead].type == TokenType::STAR ||
-                 tokens_[lookahead].type == TokenType::SLASH)) {
-                // Expression detected - consume tokens until comma, right brace, or EOF
-                // This prevents infinite loop while providing a clear error
-                error("Expressions not allowed in resource maps - use simple integer values");
-                pos_++;  // consume the integer
-                // Skip remaining expression tokens
-                while (!check(TokenType::COMMA) &&
-                       !check(TokenType::RIGHT_BRACE) &&
-                       !check(TokenType::END_OF_FILE) &&
-                       pos_ < tokens_.size()) {
-                    pos_++;
+    bool is_resource_map = true;
+    size_t lookahead = pos_;
+    int depth = 1;
+    
+    while (depth > 0 && lookahead < tokens_.size()) {
+        if (tokens_[lookahead].type == TokenType::LEFT_BRACE) {
+            depth++;
+        } else if (tokens_[lookahead].type == TokenType::RIGHT_BRACE) {
+            depth--;
+            if (depth == 0) break;
+        } else if (tokens_[lookahead].type == TokenType::IDENTIFIER) {
+            // After identifier comes ':'
+            lookahead++;
+            if (lookahead >= tokens_.size()) break;
+            if (tokens_[lookahead].type != TokenType::COLON) {
+                is_resource_map = false;
+                break;
+            }
+            lookahead++;  // skip ':'
+            if (lookahead >= tokens_.size()) break;
+            
+            // Check if value is a simple integer
+            if (tokens_[lookahead].type == TokenType::INTEGER) {
+                // Check if followed by operator (expression)
+                lookahead++;
+                if (lookahead < tokens_.size() &&
+                    (tokens_[lookahead].type == TokenType::PLUS ||
+                     tokens_[lookahead].type == TokenType::MINUS ||
+                     tokens_[lookahead].type == TokenType::STAR ||
+                     tokens_[lookahead].type == TokenType::SLASH)) {
+                    is_resource_map = false;
+                    break;
                 }
-                // Store a default value
-                map->resources[resource] = 0;
+                // Simple integer - continue checking
+                continue;
+            } else if (tokens_[lookahead].type == TokenType::STRING) {
+                // Strings in resource map - could be allowed, but we'll treat as object
+                is_resource_map = false;
+                break;
             } else {
-                // Simple integer
+                // Not an integer or string - definitely an object
+                is_resource_map = false;
+                break;
+            }
+        }
+        lookahead++;
+    }
+    
+    if (is_resource_map) {
+        // Parse as ResourceMap
+        value->type = PropertyValue::Type::RESOURCE_MAP;
+        auto map = std::make_unique<ResourceMap>();
+        
+        while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
+            if (!check(TokenType::IDENTIFIER)) {
+                error("Expected resource name");
+                pos_++;
+                break;
+            }
+            
+            std::string resource = current().lexeme;
+            pos_++;
+            
+            if (!check(TokenType::COLON)) {
+                error("Expected ':' after resource name");
+                pos_++;
+                break;
+            }
+            pos_++;
+            
+            if (check(TokenType::INTEGER)) {
                 int64_t quantity = std::get<int64_t>(current().value);
                 pos_++;
                 map->resources[resource] = quantity;
+            } else if (check(TokenType::STRING)) {
+                pos_++;
+                // String value in resource map
+                map->resources[resource] = 0;
+            } else {
+                error("Expected integer value");
+                pos_++;
+                break;
             }
-        } else if (check(TokenType::STRING)) {
-            // String value - store as string resource with quantity 0
-            pos_++;
-            // Skip for now, could extend ResourceMap to support strings
-        } else if (check(TokenType::LEFT_BRACKET)) {
-            // Nested list - skip the entire bracket content
-            int depth = 1;
-            pos_++;  // consume '['
-            while (depth > 0 && pos_ < tokens_.size()) {
-                if (check(TokenType::LEFT_BRACKET)) depth++;
-                else if (check(TokenType::RIGHT_BRACKET)) depth--;
+            
+            if (check(TokenType::COMMA)) {
                 pos_++;
             }
-        } else if (check(TokenType::LEFT_BRACE)) {
-            // Nested object - skip the entire brace content
-            int depth = 1;
-            pos_++;  // consume '{'
-            while (depth > 0 && pos_ < tokens_.size()) {
-                if (check(TokenType::LEFT_BRACE)) depth++;
-                else if (check(TokenType::RIGHT_BRACE)) depth--;
-                pos_++;
-            }
-        } else if (check(TokenType::MINUS)) {
-            // Negative number - consume the expression tokens
-            error("Negative values or expressions not allowed in resource maps");
-            pos_++;  // consume '-'
-            // Skip remaining expression tokens
-            while (!check(TokenType::COMMA) &&
-                   !check(TokenType::RIGHT_BRACE) &&
-                   !check(TokenType::END_OF_FILE) &&
-                   pos_ < tokens_.size()) {
-                pos_++;
-            }
-            map->resources[resource] = 0;
-        } else {
-            error("Expected value after ':'");
-            pos_++;
-            break;
         }
         
-        // Optional comma
-        if (check(TokenType::COMMA)) {
+        consume(TokenType::RIGHT_BRACE, "Expected '}'");
+        value->resource_map = std::move(map);
+    } else {
+        // Parse as ObjectValue
+        value->type = PropertyValue::Type::OBJECT;
+        auto obj = std::make_unique<ObjectValue>();
+        
+        while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
+            // Parse key
+            if (!check(TokenType::IDENTIFIER)) {
+                error("Expected property name");
+                pos_++;
+                break;
+            }
+            
+            std::string key = current().lexeme;
             pos_++;
+            
+            if (!check(TokenType::COLON)) {
+                error("Expected ':' after property name");
+                pos_++;
+                break;
+            }
+            pos_++;  // consume ':'
+            
+            // Parse value (can be any PropertyValue including nested objects/arrays)
+            auto prop_val = parse_property_value();
+            
+            // Store as key-value pair
+            obj->properties.push_back({key, std::move(prop_val)});
+            
+            if (check(TokenType::COMMA)) {
+                pos_++;
+            }
         }
+        
+        consume(TokenType::RIGHT_BRACE, "Expected '}'");
+        value->object = std::move(obj);
     }
     
-    consume(TokenType::RIGHT_BRACE, "Expected '}'");
-    
-    value->resource_map = std::move(map);
     return value;
 }
 

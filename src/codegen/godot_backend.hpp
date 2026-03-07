@@ -28,6 +28,9 @@ private:
     std::string generate_property_value(const Property& prop);
     std::string generate_resource_map(const ResourceMap& map);
     std::string generate_reference_list(const ReferenceList& list);
+    std::string generate_object_value(const ObjectValue& obj);
+    std::string generate_array_value(const ArrayValue& arr);
+    std::string generate_property_value_nested(const PropertyValue& pv);
     std::string generate_expression(const Expression* expr);
 
     std::string escape_string(const std::string& s) const;

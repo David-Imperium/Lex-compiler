@@ -129,9 +129,89 @@ std::string JsonBackend::generate_property_value(const Property& prop) {
                        << generate_reference_list(*prop.value->reference_list);
             }
             break;
+        case PropertyValue::Type::OBJECT:
+            if (prop.value->object) {
+                result << "\"" << prop.name << "\": "
+                       << generate_object_value(*prop.value->object);
+            }
+            break;
+        case PropertyValue::Type::ARRAY:
+            if (prop.value->array) {
+                result << "\"" << prop.name << "\": "
+                       << generate_array_value(*prop.value->array);
+            }
+            break;
     }
 
     return result.str();
+}
+
+std::string JsonBackend::generate_object_value(const ObjectValue& obj) {
+    std::string json = "{";
+    bool first = true;
+    for (const auto& [name, value] : obj.properties) {
+        if (!value) continue;
+        if (!first) json += ", ";
+        json += "\"" + name + "\": " + generate_property_value_nested(*value);
+        first = false;
+    }
+    json += "}";
+    return json;
+}
+
+std::string JsonBackend::generate_array_value(const ArrayValue& arr) {
+    std::string json = "[";
+    for (size_t i = 0; i < arr.values.size(); i++) {
+        if (!arr.values[i]) continue;
+        if (i > 0) json += ", ";
+        json += generate_property_value_nested(*arr.values[i]);
+    }
+    json += "]";
+    return json;
+}
+
+std::string JsonBackend::generate_property_value_nested(const PropertyValue& pv) {
+    switch (pv.type) {
+        case PropertyValue::Type::EXPRESSION:
+            if (pv.expression) {
+                switch (pv.expression->type) {
+                    case Expression::Type::STRING:
+                        return "\"" + escape_string(std::get<std::string>(pv.expression->value)) + "\"";
+                    case Expression::Type::INTEGER:
+                        return std::to_string(std::get<int64_t>(pv.expression->value));
+                    case Expression::Type::FLOAT:
+                        return std::to_string(std::get<double>(pv.expression->value));
+                    case Expression::Type::BOOLEAN:
+                        return std::get<bool>(pv.expression->value) ? "true" : "false";
+                    case Expression::Type::REFERENCE:
+                        return "\"" + pv.expression->reference + "\"";
+                    default:
+                        return "\"(expression)\"";
+                }
+            }
+            break;
+        case PropertyValue::Type::RESOURCE_MAP:
+            if (pv.resource_map) {
+                return generate_resource_map(*pv.resource_map);
+            }
+            break;
+        case PropertyValue::Type::REFERENCE_LIST:
+            if (pv.reference_list) {
+                return generate_reference_list(*pv.reference_list);
+            }
+            break;
+        case PropertyValue::Type::OBJECT:
+            if (pv.object) {
+                return generate_object_value(*pv.object);
+            }
+            break;
+        case PropertyValue::Type::ARRAY:
+            if (pv.array) {
+                return generate_array_value(*pv.array);
+            }
+            break;
+    }
+    return "null";
 }
 
 std::string JsonBackend::generate_resource_map(const ResourceMap& map) {
