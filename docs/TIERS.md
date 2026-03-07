@@ -34,7 +34,7 @@ Lex offers two tiers — free for modders, premium for indie developers.
 - VS Code extension
 
 ### Distribution
-- **Source:** GitHub public repository
+- **Source:** https://github.com/David-Imperium/Lex-compiler
 - **License:** MIT (free forever)
 
 ---
@@ -64,7 +64,7 @@ Lex offers two tiers — free for modders, premium for indie developers.
 - Priority support
 
 ### Distribution
-- **Source:** Codeberg private repository (invite-only)
+- **Source:** https://codeberg.org/David-Imperium/Lex-Plus (private, invite-only)
 - **License:** Commercial (requires purchase)
 
 ---
