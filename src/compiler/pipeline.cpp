@@ -50,6 +50,7 @@ CompilerPipeline CompilerPipeline::create_default(const CompileOptions& options)
     pipeline.add_pass(std::make_unique<LexerPass>());
     pipeline.add_pass(std::make_unique<ParserPass>());
     pipeline.add_pass(std::make_unique<ValidationPass>());
+    pipeline.add_pass(std::make_unique<TypeCheckPass>());
     pipeline.add_pass(std::make_unique<VisibilityPass>());
     pipeline.add_pass(std::make_unique<CodegenPass>());
     
@@ -73,6 +74,13 @@ PipelineBuilder& PipelineBuilder::with_parser() {
 PipelineBuilder& PipelineBuilder::with_validation(bool enabled) {
     if (enabled) {
         pipeline_.add_pass(std::make_unique<ValidationPass>());
+    }
+    return *this;
+}
+
+PipelineBuilder& PipelineBuilder::with_typecheck(bool enabled) {
+    if (enabled) {
+        pipeline_.add_pass(std::make_unique<TypeCheckPass>());
     }
     return *this;
 }

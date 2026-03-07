@@ -2,6 +2,7 @@
 #include "../lexer/lexer.hpp"
 #include "../parser/parser.hpp"
 #include "../parser/validator.hpp"
+#include "../semantic/type_checker.hpp"
 #include "../codegen/backend.hpp"
 
 namespace lex {
@@ -79,6 +80,32 @@ bool ValidationPass::run(PassContext& ctx) {
                 .severity = CompileErrorSeverity::Warning,
                 .code = warn.code,
                 .suggestion = ""
+            });
+        }
+        return false;
+    }
+    return true;
+}
+
+// ============================================================================
+// TypeCheckPass Implementation
+// ============================================================================
+
+bool TypeCheckPass::run(PassContext& ctx) {
+    if (!ctx.options.validate) {
+        return true;  // Skip if validation disabled
+    }
+    
+    TypeChecker checker(ctx.schema.get());
+    
+    if (!checker.check(ctx.ast)) {
+        for (const auto& err : checker.errors()) {
+            ctx.errors.push_back({
+                .message = err.message,
+                .location = err.location.empty() ? ctx.source_name : err.location,
+                .severity = CompileErrorSeverity::Error,
+                .code = "T001",
+                .suggestion = err.context.empty() ? "" : "In " + err.context
             });
         }
         return false;

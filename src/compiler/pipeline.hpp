@@ -46,6 +46,7 @@ public:
     PipelineBuilder& with_lexer();
     PipelineBuilder& with_parser();
     PipelineBuilder& with_validation(bool enabled = true);
+    PipelineBuilder& with_typecheck(bool enabled = true);
     PipelineBuilder& with_visibility_filter(bool enabled = true);
     PipelineBuilder& with_codegen();
     PipelineBuilder& with_pass(std::unique_ptr<Pass> pass);

@@ -78,6 +78,14 @@ public:
     bool is_optional() const override { return true; }
 };
 
+// Type checking pass: validate types in expressions
+class TypeCheckPass : public Pass {
+public:
+    std::string name() const override { return "typecheck"; }
+    bool run(PassContext& ctx) override;
+    bool is_optional() const override { return true; }
+};
+
 // Visibility filter: remove internal/private defs for modders
 class VisibilityPass : public Pass {
 public:
