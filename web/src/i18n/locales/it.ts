@@ -142,7 +142,7 @@ export const it: Translations = {
             },
             {
                 q: 'Lex è pronto per la produzione?',
-                a: 'Sì. Lex Base (gratuito) è stabile con oltre 35 test e usato in progetti in produzione. I backend Core sono più recenti ma seguono gli stessi standard di qualità.'
+                a: 'Sì. Lex (gratuito) è stabile con oltre 35 test e usato in progetti in produzione. I backend Core sono più recenti ma seguono gli stessi standard di qualità.'
             },
             {
                 q: 'Posso usare la versione Base a scopo commerciale?',

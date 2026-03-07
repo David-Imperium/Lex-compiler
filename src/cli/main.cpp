@@ -22,6 +22,11 @@
 #include "../context/query.hpp"
 #include "../license/license.hpp"
 
+// Lex-Plus premium backends (conditional include)
+#if __has_include("lex_plus.hpp")
+#include "lex_plus.hpp"
+#endif
+
 namespace fs = std::filesystem;
 
 // ============================================================================
@@ -446,7 +451,7 @@ int main(int argc, char* argv[]) {
     app.add_option("-t,--target", target_str,
         "Output format(s): lua,json,gd,cs,love2d,defold\n"
         "  Free: lua, json, godot, unity, love2d, defold\n"
-        "  Core+: unreal, gamemaker, construct, bevy, pygame, raylib, cpp, rust, python");
+        "  Premium (Lex-Plus): unreal, gamemaker, construct, bevy, pygame, raylib, cpp, rust, python, rpc");
 
     std::string context_str;
     app.add_option("--context", context_str, "Generate AI context: json,md,minimal,all");
@@ -476,6 +481,11 @@ int main(int argc, char* argv[]) {
     app.add_option("--license", license_key, "License key (or set LEX_LICENSE env)");
 
     CLI11_PARSE(app, argc, argv);
+
+    // Register premium backends if Lex-Plus is available
+#if __has_include("lex_plus.hpp")
+    lex::register_premium_backends();
+#endif
 
     // Show version with animated logo
     if (show_version) {

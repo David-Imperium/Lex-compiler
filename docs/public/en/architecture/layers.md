@@ -12,13 +12,13 @@
 ├─────────────────────────────────────────────┤
 │                  Lex Core                   │  Validation, Cross-references
 ├─────────────────────────────────────────────┤
-│                  Lex Base                   │  Lexer, Parser, AST
+│                  Lex (Free)                  │  Lexer, Parser, AST
 └─────────────────────────────────────────────┘
 ```
 
 ---
 
-## 1. Lex Base
+## 1. Lex (Free)
 
 **Purpose:** Foundation layer
 
@@ -44,7 +44,7 @@
 - `Schema` - Definition registry
 - `ReferenceResolver` - Cross-reference resolution
 
-**Dependencies:** Lex Base
+**Dependencies:** Lex (Free)
 
 **Output:** Validated AST
 
@@ -93,9 +93,9 @@
 ```
 C:\Lex\
 ├── src/
-│   ├── lexer/          # Lex Base
-│   ├── parser/         # Lex Base
-│   ├── ast/            # Lex Base
+│   ├── lexer/          # Lex
+│   ├── parser/         # Lex
+│   ├── ast/            # Lex
 │   ├── semantic/       # Lex Core
 │   │   ├── validator.cpp
 │   │   ├── type_checker.cpp

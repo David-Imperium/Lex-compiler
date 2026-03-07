@@ -158,6 +158,7 @@ enum class TokenType {
 
     // Special
     RANGE,      // ..
+    QUESTION,   // ? (optional type marker)
 
     // Control
     END_OF_FILE,

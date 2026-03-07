@@ -110,7 +110,7 @@ lexc content.lex -o output/ -t lua,json,gd,cs,love2d,defold
 
 ## Output Backends
 
-### Free (Base Tier)
+### Free (Lex Public)
 
 | Backend | Target | Ready? |
 |---------|--------|--------|
@@ -121,7 +121,7 @@ lexc content.lex -o output/ -t lua,json,gd,cs,love2d,defold
 | `love2d` | LÖVE2D | ✅ |
 | `defold` | Defold | ✅ |
 
-### Premium (Core+ Tier)
+### Premium (Lex-Plus)
 
 | Backend | Target | Ready? |
 |---------|--------|--------|
@@ -139,7 +139,7 @@ See [docs/BACKENDS.md](docs/BACKENDS.md) for complete list.
 
 | Tier | Price | Backends | Features |
 |------|-------|----------|----------|
-| **Base** | FREE | 6 backends | Core features, MIT license |
+| **Lex (Free)** | FREE | 6 backends | Core features, MIT license |
 | **Core** | $49 lifetime | +9 backends | Multi-file, advanced expressions |
 
 See [docs/TIERS.md](docs/TIERS.md) for details.
@@ -214,7 +214,7 @@ Primarily, but works for any declarative data: configs, content management, API 
 **What if my engine isn't supported?**
 Use `lua` or `json` backends (work everywhere), or implement a custom backend in C++.
 
-**Can I use Base commercially?**
+**Can I use Lex commercially?**
 Yes! MIT license allows any use.
 
 → [Full FAQ](docs/TIERS.md#faq)
@@ -281,7 +281,7 @@ See [ROADMAP.md](docs/ROADMAP.md) for details.
 
 ## License
 
-**Lex Base** — MIT License. Free forever.
+**Lex** — MIT License. Free forever.
 
 **Lex Core** — Commercial license. Coming soon.
 

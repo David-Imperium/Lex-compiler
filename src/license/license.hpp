@@ -14,12 +14,12 @@ namespace lex::license {
 // ============================================================================
 
 enum class Tier : uint8_t {
-    Base,      // Free
-    Core,      // $49 lifetime / $9/mo
-    Studio,    // $79 lifetime / $15/mo
-    Net,       // $69 lifetime / $12/mo
-    Shader,    // $149 lifetime / $29/mo
-    Neural,    // $149 lifetime / $29/mo
+    Free,      // Lex public repo (no license needed)
+    Core,      // $49 lifetime / $9/mo - Engine backends
+    Studio,    // $79 lifetime / $15/mo - Visual tools
+    Net,       // $69 lifetime / $12/mo - RPC backends
+    Shader,    // $149 lifetime / $29/mo - Shader DSL
+    Neural,    // $149 lifetime / $29/mo - AI integration
     Engine,    // Future: $199 lifetime / $39/mo
     Unknown
 };
@@ -86,16 +86,35 @@ private:
 };
 
 // ============================================================================
-// Free Tier Backends (Base)
+// Backend Categories by Tier
 // ============================================================================
 
+// Free tier - Lex public repo (no license needed)
 inline const std::unordered_set<std::string> FREE_BACKENDS = {
     "lua", "json", "godot", "unity", "love2d", "defold"
 };
 
+// Core tier - Engine backends ($49 lifetime)
 inline const std::unordered_set<std::string> CORE_BACKENDS = {
     "unreal", "gamemaker", "construct", "bevy",
     "pygame", "raylib", "cpp", "rust", "python"
+};
+
+// Net tier - RPC backends ($69 lifetime)
+inline const std::unordered_set<std::string> NET_BACKENDS = {
+    "rpc", "rpc_python", "rpc_go", "rpc_full"
+};
+
+// Studio tier - Visual tools ($79 lifetime) - no backends, just features
+
+// Shader tier - Shader DSL ($149 lifetime)
+inline const std::unordered_set<std::string> SHADER_BACKENDS = {
+    "glsl", "hlsl", "spirv"
+};
+
+// Neural tier - AI integration ($149 lifetime)
+inline const std::unordered_set<std::string> NEURAL_BACKENDS = {
+    "onnx", "tensorrt"
 };
 
 } // namespace lex::license

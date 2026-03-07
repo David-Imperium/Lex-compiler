@@ -126,6 +126,7 @@ Token Lexer::scan_token() {
         case ',': return {TokenType::COMMA, ",", loc};
         case '.': return {TokenType::DOT, ".", loc};
         case ';': return {TokenType::SEMICOLON, ";", loc};
+        case '?': return {TokenType::QUESTION, "?", loc};
         default:
             errors_.push_back("Unexpected character: " + std::string(1, c));
             return {TokenType::ERROR, std::string(1, c), loc};

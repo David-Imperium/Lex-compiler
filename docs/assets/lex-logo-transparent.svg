@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" width="600" height="200" style="background: transparent;">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@800&amp;display=swap');
+      .lex {
+        font-family: 'Inter', system-ui, sans-serif;
+        font-weight: 800;
+        fill: #ffffff;
+        font-size: 140px;
+        letter-spacing: -6px;
+      }
+      .dot {
+        fill: #00f2fe;
+        font-size: 150px;
+      }
+      .glow {
+        filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.8));
+      }
+    </style>
+  </defs>
+  <text x="300" y="145" text-anchor="middle" class="lex">LEX<tspan class="dot glow">.</tspan></text>
+</svg>

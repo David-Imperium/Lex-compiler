@@ -32,7 +32,7 @@ bool License::has_neural() const {
 
 std::string License::tier_name() const {
     switch (tier) {
-        case Tier::Base:    return "Base";
+        case Tier::Free:    return "Free";
         case Tier::Core:    return "Core";
         case Tier::Studio:  return "Studio";
         case Tier::Net:     return "Net";
@@ -46,8 +46,24 @@ std::string License::tier_name() const {
 std::unordered_set<std::string> License::get_available_backends() const {
     std::unordered_set<std::string> backends = FREE_BACKENDS;
 
+    // Core tier - Engine backends
     if (tier >= Tier::Core) {
         backends.insert(CORE_BACKENDS.begin(), CORE_BACKENDS.end());
+    }
+
+    // Net tier - RPC backends
+    if (tier >= Tier::Net) {
+        backends.insert(NET_BACKENDS.begin(), NET_BACKENDS.end());
+    }
+
+    // Shader tier - Shader DSL backends
+    if (tier >= Tier::Shader) {
+        backends.insert(SHADER_BACKENDS.begin(), SHADER_BACKENDS.end());
+    }
+
+    // Neural tier - AI backends
+    if (tier >= Tier::Neural) {
+        backends.insert(NEURAL_BACKENDS.begin(), NEURAL_BACKENDS.end());
     }
 
     return backends;
@@ -58,7 +74,7 @@ std::unordered_set<std::string> License::get_available_backends() const {
 // ============================================================================
 
 Tier LicenseManager::tier_from_string(std::string_view str) {
-    if (str == "BASE" || str == "base")    return Tier::Base;
+    if (str == "FREE" || str == "free")    return Tier::Free;
     if (str == "CORE" || str == "core")    return Tier::Core;
     if (str == "STUDIO" || str == "studio") return Tier::Studio;
     if (str == "NET" || str == "net")      return Tier::Net;

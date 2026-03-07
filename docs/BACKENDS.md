@@ -2,9 +2,9 @@
 
 Complete list of supported code generation targets.
 
-## Free Backends (Base Tier)
+## Free Backends (Lex Public)
 
-These backends are included in Lex Base — free forever under MIT license.
+These backends are included in Lex — free forever under MIT license.
 
 | Backend | Output | Target Engine |
 |---------|--------|---------------|

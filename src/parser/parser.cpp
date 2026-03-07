@@ -306,7 +306,7 @@ std::unique_ptr<Property> Parser::parse_property() {
 
 std::unique_ptr<PropertyValue> Parser::parse_property_value() {
     auto value = std::make_unique<PropertyValue>();
-    
+
     if (check(TokenType::LEFT_BRACKET)) {
         // Could be resource map [Gold x50, Wood x20] or reference list [TechA, TechB]
         return parse_bracket_value();
@@ -317,6 +317,23 @@ std::unique_ptr<PropertyValue> Parser::parse_property_value() {
         // Simple expression
         value->type = PropertyValue::Type::EXPRESSION;
         value->expression = parse_expression();
+
+        // Handle type suffixes for RPC struct definitions
+        // Support: Type? (optional) and Type[] (array)
+        if (value->expression && value->expression->type == Expression::Type::REFERENCE) {
+            // Check for optional suffix ?
+            if (check(TokenType::QUESTION)) {
+                value->expression->reference += "?";
+                pos_++;
+            }
+            // Check for array suffix []
+            if (check(TokenType::LEFT_BRACKET) && peek().type == TokenType::RIGHT_BRACKET) {
+                value->expression->reference += "[]";
+                pos_++;  // consume [
+                pos_++;  // consume ]
+            }
+        }
+
         return value;
     }
 }

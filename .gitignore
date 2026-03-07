@@ -6,6 +6,9 @@ cmake-build-*/
 out/
 Testing/
 
+# Packages (premium - not for public release)
+packages/
+
 # Compiled
 *.exe
 *.obj

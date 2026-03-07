@@ -37,7 +37,7 @@ game.lex → Lua, JSON, Godot, Unity, Love2D, Defold, AI Context
 ├─────────────────────────────────────────────┤
 │                  Lex Core                   │  Validation, references
 ├─────────────────────────────────────────────┤
-│                  Lex Base                   │  Lexer, parser, AST
+│                  Lex (Free)                  │  Lexer, parser, AST
 └─────────────────────────────────────────────┘
 ```
 

@@ -142,7 +142,7 @@ export const en: Translations = {
             },
             {
                 q: 'Is Lex production-ready?',
-                a: 'Yes. Lex Base (free) is stable with 35+ tests and used in production projects. Core backends are newer but follow the same quality standards.'
+                a: 'Yes. Lex (free) is stable with 35+ tests and used in production projects. Core backends are newer but follow the same quality standards.'
             },
             {
                 q: 'Can I use Base commercially?',

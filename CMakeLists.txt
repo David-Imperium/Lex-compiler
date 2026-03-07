@@ -92,6 +92,7 @@ target_link_libraries(lexc PRIVATE lex CLI11::CLI11)
 # Link premium package if found
 if(LEX_PLUS_FOUND)
     target_link_libraries(lexc PRIVATE lex_plus)
+    target_include_directories(lexc PRIVATE ${CMAKE_SOURCE_DIR}/packages/Lex-Plus/src)
     message(STATUS "Linking Lex-Plus to executable")
 endif()
 

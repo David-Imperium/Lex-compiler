@@ -6,12 +6,15 @@ Lex offers multiple tiers to match different needs — from free modding tools t
 
 | Tier | Price | Backends | Best For |
 |------|-------|----------|----------|
-| **Base** | FREE | 6 backends | Modders, hobbyists |
+| **Lex (Free)** | FREE | 6 backends | Modders, hobbyists |
 | **Core** | $49 lifetime | +9 backends | Indie developers |
+| **Net** | $69 lifetime | +4 RPC backends | Multiplayer devs |
+| **Shader** | $149 lifetime | +3 shader backends | Graphics engineers |
+| **Neural** | $149 lifetime | +2 AI backends | AI integration |
 
 ---
 
-## Base (Free)
+## Lex (Free)
 
 **MIT License — No purchase required**
 
@@ -50,7 +53,55 @@ Lex offers multiple tiers to match different needs — from free modding tools t
 ### Features
 - Multi-file projects
 - Advanced expressions
-- All Base features
+- All Free features
+
+---
+
+## Net ($69 lifetime)
+
+**For multiplayer and networked games**
+
+### Backends (+4)
+- **RPC** — Generic RPC output
+- **RPC-Python** — Python server bindings
+- **RPC-Go** — Go server bindings
+- **RPC-Full** — Full stack (client + server)
+
+### Features
+- Multiplayer data synchronization
+- Server code generation
+- All Core features
+
+---
+
+## Shader ($149 lifetime)
+
+**For graphics engineers**
+
+### Backends (+3)
+- **GLSL** — OpenGL shaders
+- **HLSL** — DirectX shaders
+- **SPIRV** — Vulkan shaders
+
+### Features
+- Cross-platform shader compilation
+- Material system DSL
+- All Core features
+
+---
+
+## Neural ($149 lifetime)
+
+**For AI integration**
+
+### Backends (+2)
+- **ONNX** — ONNX model integration
+- **TensorRT** — NVIDIA TensorRT
+
+### Features
+- AI model integration
+- Upscaling backends (DLSS, XeSS, FSR)
+- All Core features
 
 ---
 
@@ -61,14 +112,26 @@ Lex offers multiple tiers to match different needs — from free modding tools t
 | Tier | Price |
 |------|-------|
 | Core | $49 lifetime |
+| Net | $69 lifetime |
+| Shader | $149 lifetime |
+| Neural | $149 lifetime |
 
 **Early adopters keep lifetime access forever.**
+
+### Bundle Pricing
+
+| Bundle | Tiers Included | Price | Savings |
+|--------|----------------|-------|---------|
+| **All-in-One** | Core + Net + Shader + Neural | $299 | $67 |
 
 ### Standard Pricing (After Launch)
 
 | Tier | Monthly | Annual | Lifetime |
 |------|---------|--------|----------|
 | Core | $9/mo | $79/year | Not available |
+| Net | $12/mo | $99/year | Not available |
+| Shader | $29/mo | $249/year | Not available |
+| Neural | $29/mo | $249/year | Not available |
 
 **Why the change?**
 Lifetime pricing is for early supporters. Once Lex matures, we'll switch to subscriptions for sustainable development.
@@ -115,23 +178,23 @@ Primarily, but not exclusively. Any project that needs:
 Or [request a backend](https://github.com/David-Imperium/Lex-compiler/issues).
 
 **Is Lex production-ready?**
-Yes. Lex Base (free) is stable with 35+ tests, used in production projects. Core backends are newer but follow the same quality standards.
+Yes. Lex (free) is stable with 35+ tests, used in production projects. Core backends are newer but follow the same quality standards.
 
 ---
 
 ### Pricing & Licensing
 
-**Can I use Base commercially?**
+**Can I use Lex commercially?**
 Yes! The MIT license allows any use — personal, commercial, open source. No attribution required.
 
 **Does every team member need a license?**
 Yes, each developer needs their own license. Contact us for team pricing (5+ seats).
 
 **Can I upgrade later?**
-We only have one tier right now (Core). When new tiers launch, early adopters get upgrade discounts.
+Early adopters get upgrade discounts when new tiers launch.
 
 **Does lifetime license expire?**
-Never. Pay once, use forever. Including all future updates to Core backends.
+Never. Pay once, use forever. Including all future updates to that tier.
 
 **What happens if I cancel my subscription?**
 You lose access to premium backends when the billing period ends. Your `.lex` files still work with free backends.
@@ -145,9 +208,10 @@ Yes, 30-day money-back guarantee. No questions asked.
 **What backends are actually ready?**
 - Free: lua, json, godot, unity, love2d, defold (all ready)
 - Core: unreal (ready), others planned
+- Net: rpc (ready), others planned
 
-**When will other Core backends be ready?**
-GameMaker, Rust, C++, Python are on the roadmap. No fixed dates — quality over speed.
+**When will other backends be ready?**
+Check [BACKENDS.md](BACKENDS.md) for status. No fixed dates — quality over speed.
 
 ---
 
@@ -162,7 +226,7 @@ GameMaker, Rust, C++, Python are on the roadmap. No fixed dates — quality over
 
 ## FAQ
 
-**Can I use Base commercially?**
+**Can I use Lex commercially?**
 Yes! MIT license allows any use.
 
 **Do I need separate licenses for team members?**
