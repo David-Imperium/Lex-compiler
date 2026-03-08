@@ -1,11 +1,50 @@
 # Lex Compiler Roadmap
 
-**Current Version:** 1.0.0  
+**Current Version:** 1.1.0
 **License:** MIT
 
 ---
 
 ## Released Versions
+
+### v1.1.0 — License & Quality (2026-03-08)
+
+**Status:** ✅ Released
+
+**Architecture:**
+- Type checking integrated into compilation pipeline
+- Modular CLI architecture (5 header-only components)
+- Nested data structures (ObjectValue/ArrayValue)
+
+**Features:**
+- `TypeCheckPass` validates type annotations
+- Object and array values in definitions
+- Refactored CLI with AnimatedSpinner (8 styles)
+- File watching with cross-platform FileWatcher
+- License system for premium features
+- Package system for Lex-Plus extensions
+
+**Premium Backends:**
+- Unreal Engine (UCLASS, USTRUCT, UENUM)
+- RPC protocol generation
+
+**Code Quality:**
+- main.cpp reduced from ~650 to ~180 lines
+- Better separation of concerns
+- Header-only modules for easy extension
+
+---
+
+### v1.0.1 — Fixes & Docs (2026-03-05)
+
+**Status:** ✅ Released
+
+**Features:**
+- Animated spinner and colored output
+- React demo for code transformation
+- Schema parameter fixes
+
+---
 
 ### v1.0.0 — First Stable Release (2026-03-05)
 

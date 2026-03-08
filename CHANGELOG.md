@@ -10,9 +10,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [1.1.0] - 2026-03-06
+## [1.1.0] - 2026-03-08
 
 ### Added
+- **Type Checking in Pipeline** `(Free)` — Type validation integrated into compilation
+  - New `TypeCheckPass` added to standard pipeline
+  - Validates all type annotations against schema
+  - Pipeline: Lexer → Parser → Validation → TypeCheck → Visibility → Codegen
+
+- **Nested Data Structures** `(Free)` — Object and array values in definitions
+  - `ObjectValue` for nested objects (`stats: { attack: 10, defense: 5 }`)
+  - `ArrayValue` for inline arrays (`tags: ["hero", "legend"]`)
+  - Full backend support (Lua, JSON, Godot, Unity, Love2D, Defold)
+
 - **License System** — Tier verification for premium features
   - `--license` CLI flag for activation
   - `LEX_LICENSE` environment variable support
@@ -30,6 +40,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Rust Backend** `[Core]` — Generate Rust structs (planned)
 - **C++ Backend** `[Core]` — Generate C++ headers (planned)
 - **Python Backend** `[Core]` — Generate Python dataclasses (planned)
+
+### Changed
+- **CLI Modularization** — Refactored main.cpp into separate components
+  - `color.hpp` — ANSI color utilities
+  - `spinner.hpp` — Animated progress indicators (8 styles)
+  - `watcher.hpp` — Cross-platform file watching
+  - `compiler.hpp` — Parallel compilation with thread pool
+  - `commands.hpp` — Command handlers (watch, compile, context, query)
+  - Reduced main.cpp from ~650 to ~180 lines
+
+### Fixed
+- Type annotations now validated during compilation
+- Nested objects and arrays render correctly in all backends
 
 ### Distribution
 - **Lex-Plus Package** — Single package for all premium tiers
