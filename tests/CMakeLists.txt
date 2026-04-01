@@ -13,6 +13,11 @@ if(NOT Catch2_FOUND)
     FetchContent_MakeAvailable(Catch2)
 endif()
 
+# Include Catch for catch_discover_tests
+include(CTest)
+include(Catch)
+
+# Main lexer tests executable
 add_executable(lexer_tests
     test_main.cpp
     ${CMAKE_SOURCE_DIR}/src/lexer/lexer.cpp
@@ -34,7 +39,6 @@ add_executable(lexer_tests
 
 target_include_directories(lexer_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(lexer_tests PRIVATE Catch2::Catch2WithMain)
-
 target_compile_features(lexer_tests PRIVATE cxx_std_20)
 
 if(MSVC)
@@ -43,6 +47,36 @@ else()
     target_compile_options(lexer_tests PRIVATE -Wall -Wextra -pedantic)
 endif()
 
-include(CTest)
-include(Catch)
 catch_discover_tests(lexer_tests)
+
+# Validation tests executable
+add_executable(validation_tests
+    test_validation.cpp
+    ${CMAKE_SOURCE_DIR}/src/lexer/lexer.cpp
+    ${CMAKE_SOURCE_DIR}/src/parser/parser.cpp
+    ${CMAKE_SOURCE_DIR}/src/parser/validator.cpp
+    ${CMAKE_SOURCE_DIR}/src/ast/ast.cpp
+    ${CMAKE_SOURCE_DIR}/src/semantic/type_checker.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/lua_backend.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/json_backend.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/godot_backend.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/unity_backend.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/love2d_backend.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/defold_backend.cpp
+    ${CMAKE_SOURCE_DIR}/src/schema/schema.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/backend_registry.cpp
+    ${CMAKE_SOURCE_DIR}/src/compiler/pass.cpp
+    ${CMAKE_SOURCE_DIR}/src/compiler/pipeline.cpp
+)
+
+target_include_directories(validation_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(validation_tests PRIVATE Catch2::Catch2WithMain)
+target_compile_features(validation_tests PRIVATE cxx_std_20)
+
+if(MSVC)
+    target_compile_options(validation_tests PRIVATE /W4)
+else()
+    target_compile_options(validation_tests PRIVATE -Wall -Wextra -pedantic)
+endif()
+
+catch_discover_tests(validation_tests)

@@ -18,6 +18,7 @@
 #include "../context/context.hpp"
 #include "../context/query.hpp"
 #include "../license/license.hpp"
+#include "../codegen/backend_validator.hpp"
 
 namespace lex::cli {
 
@@ -252,6 +253,34 @@ inline CommandResult run_compile(
 
     fs::path inp_path(input_file);
     std::string base_name = inp_path.stem().string();
+
+    // Validate generated code if validation is enabled
+    if (options.validate) {
+        BackendValidator validator;
+        bool has_validation_errors = false;
+
+        for (const auto& [target_name, output] : result.outputs) {
+            auto validation = validator.validate(target_name, output);
+            if (!validation.valid) {
+                has_validation_errors = true;
+                std::cout << color::red << "  X Validation failed for " << target_name << color::reset << "\n";
+                for (const auto& err : validation.errors) {
+                    std::cout << color::red << "    - " << err << color::reset << "\n";
+                }
+            } else if (!validation.warnings.empty()) {
+                std::cout << color::yellow << "  ! " << target_name << " validated with warnings" << color::reset << "\n";
+                for (const auto& warn : validation.warnings) {
+                    std::cout << color::yellow << "    - " << warn << color::reset << "\n";
+                }
+            } else if (verbose) {
+                std::cout << color::green << "  ✓ " << target_name << " syntax validated" << color::reset << "\n";
+            }
+        }
+
+        if (has_validation_errors) {
+            return {1, "Code validation failed"};
+        }
+    }
 
     for (const auto& [target_name, output] : result.outputs) {
         fs::path output_path = fs::path(output_dir) / (base_name + target_extension(target_name));
